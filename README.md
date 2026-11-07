@@ -14,7 +14,6 @@ Scan the QR (phone) → same URL:
 
 ![QR code for live demo](public/qr-demo.png)
 
-**Also live (same `main` / `spurdue2006/init`):** [https://init-kanavkhurana3737-4212s-projects.vercel.app](https://init-kanavkhurana3737-4212s-projects.vercel.app)
 
 **Fake data only** in fixtures and the Maria demo. Never upload a real person’s pay stub.
 
