@@ -6,7 +6,7 @@ import { containsSensitiveDigits, redactEvidence } from "@/lib/redact";
 import { EvidenceSchema, EvidenceTypeSchema, type Evidence } from "@/lib/types";
 
 /** Free-tier Flash model — do not switch to paid-only models. */
-const DEFAULT_MODEL = "gemini-2.0-flash";
+const DEFAULT_MODEL = "gemini-3.8-flash";
 
 const ExtractedFieldsSchema = z.object({
   type: EvidenceTypeSchema,
