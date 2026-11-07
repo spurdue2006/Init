@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { useRef, useState, useSyncExternalStore } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -15,8 +15,19 @@ import {
 import { saveDraftEvidence } from "@/lib/draft";
 import type { Evidence } from "@/lib/types";
 
+const emptySubscribe = () => () => {};
+
+function useSecureContext(): boolean {
+  return useSyncExternalStore(
+    emptySubscribe,
+    () => window.isSecureContext,
+    () => true,
+  );
+}
+
 export default function UploadPage() {
   const router = useRouter();
+  const secure = useSecureContext();
   const cameraRef = useRef<HTMLInputElement>(null);
   const libraryRef = useRef<HTMLInputElement>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -98,12 +109,24 @@ export default function UploadPage() {
         <CardHeader>
           <CardTitle>Upload proof</CardTitle>
           <CardDescription>
-            On a phone, use <strong>Take photo</strong> to open the rear camera.
-            Photos are read in memory and not saved on a server.
+            Photos are read in memory and not saved on a server. Phones need{" "}
+            <strong>HTTPS</strong> (or localhost) for the live camera.
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
-          {/* capture=environment → rear camera on most phones */}
+          {!secure ? (
+            <div className="rounded-xl border border-amber-600/30 bg-amber-50 px-3 py-3 text-sm text-amber-950">
+              <p className="font-medium">Camera blocked on this URL</p>
+              <p className="mt-1 text-amber-900/80">
+                You’re on plain HTTP (like <code>http://192.168…</code>). iPhone
+                / Android won’t open the camera there. Use{" "}
+                <strong>Choose photo</strong> (snap in Camera app first), or open
+                an HTTPS tunnel / Vercel URL for <strong>Take photo</strong>.
+              </p>
+            </div>
+          ) : null}
+
+          {/* capture=environment → rear camera on most phones (HTTPS only) */}
           <input
             ref={cameraRef}
             type="file"
@@ -115,7 +138,7 @@ export default function UploadPage() {
               e.target.value = "";
             }}
           />
-          {/* no capture → photo library / Files */}
+          {/* no capture → photo library / Files — works on HTTP */}
           <input
             ref={libraryRef}
             type="file"
@@ -132,7 +155,16 @@ export default function UploadPage() {
               type="button"
               size="lg"
               className="h-12 w-full text-base"
-              onClick={() => cameraRef.current?.click()}
+              onClick={() => {
+                if (!secure) {
+                  setError(
+                    "Live camera needs HTTPS. Use Choose photo, or open the ngrok/Vercel HTTPS link on your phone.",
+                  );
+                  libraryRef.current?.click();
+                  return;
+                }
+                cameraRef.current?.click();
+              }}
               disabled={loading}
             >
               Take photo
@@ -184,10 +216,9 @@ export default function UploadPage() {
       </Card>
 
       <p className="text-center text-xs text-muted-foreground">
-        Open this site on your phone (same Wi‑Fi) using the Network URL from{" "}
-        <code className="rounded bg-muted px-1">npm run dev</code>, e.g.{" "}
-        <code className="rounded bg-muted px-1">http://192.168.x.x:3000</code>.
-        Fake demo documents only.
+        For live camera: use an HTTPS URL (ngrok / Vercel). For a quick demo on
+        HTTP: take a picture in the Camera app, then <strong>Choose photo</strong>
+        . Fake demo documents only.
       </p>
     </main>
   );
