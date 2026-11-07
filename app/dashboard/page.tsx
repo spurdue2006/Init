@@ -25,7 +25,7 @@ import {
   listEvidence,
   replaceAllEvidence,
 } from "@/lib/storage";
-import type { MetBy, MonthStatus } from "@/lib/types";
+import type { Evidence, MetBy, MonthStatus } from "@/lib/types";
 
 const emptySubscribe = () => () => {};
 
@@ -48,6 +48,14 @@ function monthLabel(month: string): string {
   });
 }
 
+function shortMonthLabel(month: string): string {
+  const [y, m] = month.split("-").map(Number);
+  return new Date(y, m - 1, 1).toLocaleString("en-US", {
+    month: "short",
+    year: "numeric",
+  });
+}
+
 function metByLabel(metBy: MetBy): string {
   switch (metBy) {
     case "hours":
@@ -62,9 +70,7 @@ function metByLabel(metBy: MetBy): string {
 }
 
 /** Calendar months (YYYY-MM) overlapped by confirmed evidence periods. */
-function monthsFromEvidence(
-  evidence: ReturnType<typeof listEvidence>,
-): string[] {
+function monthsFromEvidence(evidence: Evidence[]): string[] {
   const months = new Set<string>();
   for (const row of evidence) {
     if (!row.userConfirmed) continue;
@@ -84,6 +90,10 @@ function monthsFromEvidence(
     }
   }
   return [...months].sort();
+}
+
+function primaryMonthForRow(row: Evidence): string {
+  return row.periodStart.slice(0, 7);
 }
 
 function DashboardContent() {
@@ -120,6 +130,11 @@ function DashboardContent() {
   const selectedEmpty =
     status.hours === 0 && status.earnings === 0 && status.metBy === "none";
   const otherMonthsWithData = evidenceMonths.filter((m) => m !== month);
+  const itemsInMonth = items.filter((item) => {
+    const start = item.periodStart.slice(0, 7);
+    const end = item.periodEnd.slice(0, 7);
+    return start <= month && end >= month;
+  });
 
   function refresh(note?: string) {
     setTick((t) => t + 1);
@@ -183,10 +198,33 @@ function DashboardContent() {
         </p>
       </header>
 
+      {evidenceMonths.length > 0 ? (
+        <div className="flex flex-col gap-2">
+          <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+            Months with proof
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {evidenceMonths.map((m) => {
+              const active = m === month;
+              return (
+                <Button
+                  key={m}
+                  type="button"
+                  size="sm"
+                  variant={active ? "default" : "outline"}
+                  className="rounded-full"
+                  onClick={() => setMonthOverride(m)}
+                >
+                  {shortMonthLabel(m)}
+                </Button>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
+
       <label className="flex flex-col gap-1 text-sm">
-        <span className="text-muted-foreground">
-          Month (totals only count evidence in this month)
-        </span>
+        <span className="text-muted-foreground">Or pick any month</span>
         <Input
           type="month"
           value={month}
@@ -195,22 +233,24 @@ function DashboardContent() {
       </label>
 
       {selectedEmpty && otherMonthsWithData.length > 0 ? (
-        <div className="rounded-lg border border-border bg-muted/50 px-3 py-2 text-sm">
-          <p className="mb-2">
-            Your saved proof is for{" "}
-            {otherMonthsWithData.map(monthLabel).join(", ")}, not{" "}
-            {monthLabel(month)} — so this month shows 0. Switch to see totals:
+        <div className="rounded-xl border border-amber-600/30 bg-amber-50 px-4 py-3 text-sm text-amber-950 dark:bg-amber-950/30 dark:text-amber-50">
+          <p className="font-medium">Wrong month for your proof</p>
+          <p className="mt-1 text-amber-900/80 dark:text-amber-50/80">
+            Saved evidence is in{" "}
+            <strong>{otherMonthsWithData.map(monthLabel).join(", ")}</strong>,
+            so <strong>{monthLabel(month)}</strong> correctly shows 0. Tap a
+            month chip above (or below) to see hours and earnings.
           </p>
-          <div className="flex flex-wrap gap-2">
+          <div className="mt-3 flex flex-wrap gap-2">
             {otherMonthsWithData.map((m) => (
               <Button
                 key={m}
                 type="button"
                 size="sm"
-                variant="secondary"
+                className="rounded-full"
                 onClick={() => setMonthOverride(m)}
               >
-                {monthLabel(m)}
+                Show {shortMonthLabel(m)}
               </Button>
             ))}
           </div>
@@ -219,7 +259,7 @@ function DashboardContent() {
 
       {status.atRisk ? (
         <div
-          className="rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+          className="rounded-xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive"
           role="alert"
         >
           At risk for {monthLabel(month)}: pathway not met yet and only{" "}
@@ -228,44 +268,64 @@ function DashboardContent() {
         </div>
       ) : null}
 
-      <Card>
-        <CardHeader>
-          <div className="flex items-start justify-between gap-2">
-            <div>
-              <CardTitle>
-                {status.hours}/{HOURS_THRESHOLD} hrs · {monthLabel(month)}
+      <Card size="sm" className="overflow-hidden">
+        <CardHeader className="border-b border-border/60 pb-4">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+                {monthLabel(month)}
+              </p>
+              <CardTitle className="mt-1 text-3xl font-semibold tracking-tight tabular-nums">
+                {status.hours}
+                <span className="text-lg font-medium text-muted-foreground">
+                  /{HOURS_THRESHOLD} hrs
+                </span>
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="mt-1">
                 {status.daysLeft} day{status.daysLeft === 1 ? "" : "s"} left ·{" "}
                 {metByLabel(status.metBy)}
               </CardDescription>
             </div>
             {status.metBy !== "none" ? (
-              <Badge>Path: {status.metBy}</Badge>
+              <Badge className="shrink-0">Met via {status.metBy}</Badge>
             ) : (
-              <Badge variant="secondary">{status.hoursRemaining} hrs left</Badge>
+              <Badge variant="secondary" className="shrink-0">
+                {status.hoursRemaining} hrs left
+              </Badge>
             )}
           </div>
         </CardHeader>
-        <CardContent className="flex flex-col gap-4">
-          <div className="flex flex-col gap-1.5">
-            <div className="flex justify-between text-xs text-muted-foreground">
-              <span>Hours</span>
-              <span>
+        <CardContent className="flex flex-col gap-5 pt-4">
+          <div className="flex flex-col gap-2">
+            <div className="flex items-end justify-between gap-2">
+              <span className="text-sm font-medium">Hours</span>
+              <span className="text-sm tabular-nums text-muted-foreground">
                 {status.hours} / {HOURS_THRESHOLD}
               </span>
             </div>
-            <Progress value={hoursPct} className="h-2" />
+            <Progress value={hoursPct} className="h-2.5" />
           </div>
-          <div className="flex flex-col gap-1.5">
-            <div className="flex justify-between text-xs text-muted-foreground">
-              <span>Earnings</span>
-              <span>
-                ${status.earnings} / ${EARNINGS_THRESHOLD}
+          <div className="flex flex-col gap-2">
+            <div className="flex items-end justify-between gap-2">
+              <span className="text-sm font-medium">Earnings</span>
+              <span className="text-sm tabular-nums text-muted-foreground">
+                ${status.earnings.toFixed(2)} / ${EARNINGS_THRESHOLD}
               </span>
             </div>
-            <Progress value={earningsPct} className="h-2" />
+            <Progress value={earningsPct} className="h-2.5" />
+            {status.earnings >= EARNINGS_THRESHOLD ? (
+              <p className="text-xs text-muted-foreground">
+                Gross pay for this month clears the $580 earnings pathway.
+              </p>
+            ) : null}
           </div>
+          <p className="text-xs text-muted-foreground">
+            {itemsInMonth.length} evidence item
+            {itemsInMonth.length === 1 ? "" : "s"} in this month
+            {items.length !== itemsInMonth.length
+              ? ` · ${items.length} total on device`
+              : ""}
+          </p>
         </CardContent>
       </Card>
 
@@ -293,7 +353,7 @@ function DashboardContent() {
       </Button>
 
       {message ? (
-        <p className="rounded-lg bg-secondary px-3 py-2 text-sm text-secondary-foreground">
+        <p className="rounded-xl bg-secondary px-3 py-2 text-sm text-secondary-foreground">
           {message}
         </p>
       ) : null}
@@ -305,9 +365,9 @@ function DashboardContent() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Evidence this device</CardTitle>
+          <CardTitle>Evidence on this device</CardTitle>
           <CardDescription>
-            Only confirmed rows count toward the month total.
+            Only confirmed rows count. Tap a row’s month to jump the tracker.
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-3">
@@ -316,23 +376,47 @@ function DashboardContent() {
               No evidence yet. Upload a document or load Maria.
             </p>
           ) : (
-            items.map((item) => (
-              <div
-                key={item.id}
-                className="rounded-lg border border-border px-3 py-2 text-sm"
-              >
-                <p className="font-medium">
-                  {item.source}{" "}
-                  <span className="text-muted-foreground">({item.type})</span>
-                </p>
-                <p className="text-muted-foreground">
-                  {item.periodStart} → {item.periodEnd}
-                  {item.hours !== undefined ? ` · ${item.hours} hrs` : ""}
-                  {item.grossPay !== undefined ? ` · $${item.grossPay}` : ""}
-                  {item.userConfirmed ? " · confirmed" : " · not confirmed"}
-                </p>
-              </div>
-            ))
+            items.map((item) => {
+              const rowMonth = primaryMonthForRow(item);
+              const inView = rowMonth === month;
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => setMonthOverride(rowMonth)}
+                  className={`w-full rounded-xl border px-3 py-3 text-left text-sm transition-colors ${
+                    inView
+                      ? "border-foreground/20 bg-muted/40"
+                      : "border-border hover:bg-muted/30"
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="font-medium">
+                      {item.source}{" "}
+                      <span className="font-normal text-muted-foreground">
+                        ({item.type})
+                      </span>
+                    </p>
+                    <Badge variant={inView ? "default" : "outline"}>
+                      {shortMonthLabel(rowMonth)}
+                    </Badge>
+                  </div>
+                  <p className="mt-1 text-muted-foreground">
+                    {item.periodStart} → {item.periodEnd}
+                    {item.hours !== undefined ? ` · ${item.hours} hrs` : ""}
+                    {item.grossPay !== undefined
+                      ? ` · $${item.grossPay}`
+                      : ""}
+                    {item.userConfirmed ? " · confirmed" : " · not confirmed"}
+                  </p>
+                  {!inView ? (
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Tap to show {shortMonthLabel(rowMonth)} totals
+                    </p>
+                  ) : null}
+                </button>
+              );
+            })
           )}
 
           {items.length > 0 ? (
@@ -342,6 +426,7 @@ function DashboardContent() {
               className="w-full"
               onClick={() => {
                 deleteAllEvidence();
+                setMonthOverride(null);
                 refresh("All local evidence deleted.");
               }}
             >
