@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useSyncExternalStore } from "react";
+import { AppShell } from "@/components/app-shell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,7 +16,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { clearDraftEvidence, loadDraftEvidence } from "@/lib/draft";
-import { LanguageToggle, useI18n } from "@/lib/i18n";
+import { useI18n } from "@/lib/i18n";
 import { upsertEvidence } from "@/lib/storage";
 import {
   EvidenceTypeSchema,
@@ -24,6 +25,7 @@ import {
 } from "@/lib/types";
 
 const TYPES = EvidenceTypeSchema.options;
+
 const emptySubscribe = () => () => {};
 
 export default function ConfirmPage() {
@@ -63,95 +65,97 @@ export default function ConfirmPage() {
 
   if (!mounted) {
     return (
-      <main className="mx-auto flex max-w-lg flex-1 items-center justify-center px-4 py-16 text-sm text-muted-foreground">
-        {t("confirm.loadingDraft")}
-      </main>
+      <AppShell title={t("confirm.title")}>
+        <p className="py-12 text-center text-sm text-muted-foreground">
+          {t("confirm.loadingDraft")}
+        </p>
+      </AppShell>
     );
   }
 
   if (!effective) {
     return (
-      <main className="mx-auto flex max-w-lg flex-1 flex-col items-center gap-4 px-4 py-16 text-center">
-        <LanguageToggle />
-        <p className="text-muted-foreground">{t("confirm.noDraft")}</p>
-        <Button asChild>
-          <Link href="/upload">{t("confirm.goUpload")}</Link>
-        </Button>
-      </main>
+      <AppShell title={t("confirm.title")}>
+        <div className="flex flex-col items-center gap-4 py-12 text-center">
+          <p className="text-sm text-muted-foreground">{t("confirm.noDraft")}</p>
+          <Button asChild>
+            <Link href="/upload">{t("confirm.goUpload")}</Link>
+          </Button>
+        </div>
+      </AppShell>
     );
   }
 
   return (
-    <main className="mx-auto flex w-full max-w-lg flex-1 flex-col gap-4 px-4 py-8">
-      <div className="flex items-center justify-between gap-2">
-        <Link
-          href="/upload"
-          className="text-sm text-muted-foreground underline-offset-4 hover:underline"
-        >
-          {t("confirm.uploadAgain")}
-        </Link>
-        <div className="flex items-center gap-3">
-          <p className="text-xs tracking-wide text-muted-foreground uppercase">
-            {t("confirm.step")}
-          </p>
-          <LanguageToggle />
+    <AppShell title={t("confirm.title")} headerRight={t("confirm.step")}>
+      <header className="flex flex-col gap-1">
+        <div className="flex items-start justify-between gap-2">
+          <h1 className="text-2xl font-semibold tracking-tight">
+            {t("confirm.title")}
+          </h1>
+          <Badge variant="secondary" className="mt-1 shrink-0">
+            {t("confirm.confidence", {
+              pct: Math.round(effective.confidence * 100),
+            })}
+          </Badge>
         </div>
-      </div>
+        <p className="text-sm text-muted-foreground">
+          {t("confirm.description")}
+        </p>
+      </header>
 
-      <Card>
+      <Card size="sm" className="shadow-none">
         <CardHeader>
-          <div className="flex items-start justify-between gap-2">
-            <div>
-              <CardTitle>{t("confirm.title")}</CardTitle>
-              <CardDescription>{t("confirm.description")}</CardDescription>
-            </div>
-            <Badge variant="secondary">
-              {t("confirm.confidence", {
-                pct: Math.round(effective.confidence * 100),
-              })}
-            </Badge>
-          </div>
+          <CardTitle className="text-base">{t("confirm.fieldsTitle")}</CardTitle>
+          <CardDescription>
+            <Link href="/upload" className="underline-offset-4 hover:underline">
+              {t("confirm.uploadAgain")}
+            </Link>
+          </CardDescription>
         </CardHeader>
-        <CardContent className="flex flex-col gap-3">
-          <label className="flex flex-col gap-1 text-sm">
+        <CardContent className="flex flex-col gap-4">
+          <label className="flex flex-col gap-1.5 text-sm">
             <span className="text-muted-foreground">{t("confirm.type")}</span>
             <select
-              className="h-9 rounded-lg border border-input bg-transparent px-2.5 text-sm"
+              className="h-11 rounded-lg border border-input bg-card px-2.5 text-sm"
               value={effective.type}
               onChange={(e) => update("type", e.target.value as EvidenceType)}
             >
-              {TYPES.map((type) => (
-                <option key={type} value={type}>
-                  {type}
+              {TYPES.map((option) => (
+                <option key={option} value={option}>
+                  {option}
                 </option>
               ))}
             </select>
           </label>
 
-          <label className="flex flex-col gap-1 text-sm">
+          <label className="flex flex-col gap-1.5 text-sm">
             <span className="text-muted-foreground">{t("confirm.source")}</span>
             <Input
+              className="h-11 bg-card"
               value={effective.source}
               onChange={(e) => update("source", e.target.value)}
             />
           </label>
 
           <div className="grid grid-cols-2 gap-3">
-            <label className="flex flex-col gap-1 text-sm">
+            <label className="flex flex-col gap-1.5 text-sm">
               <span className="text-muted-foreground">
                 {t("confirm.periodStart")}
               </span>
               <Input
+                className="h-11 bg-card"
                 type="date"
                 value={effective.periodStart}
                 onChange={(e) => update("periodStart", e.target.value)}
               />
             </label>
-            <label className="flex flex-col gap-1 text-sm">
+            <label className="flex flex-col gap-1.5 text-sm">
               <span className="text-muted-foreground">
                 {t("confirm.periodEnd")}
               </span>
               <Input
+                className="h-11 bg-card"
                 type="date"
                 value={effective.periodEnd}
                 onChange={(e) => update("periodEnd", e.target.value)}
@@ -160,9 +164,10 @@ export default function ConfirmPage() {
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <label className="flex flex-col gap-1 text-sm">
+            <label className="flex flex-col gap-1.5 text-sm">
               <span className="text-muted-foreground">{t("confirm.hours")}</span>
               <Input
+                className="h-11 bg-card"
                 type="number"
                 min={0}
                 step="0.25"
@@ -175,11 +180,12 @@ export default function ConfirmPage() {
                 }
               />
             </label>
-            <label className="flex flex-col gap-1 text-sm">
+            <label className="flex flex-col gap-1.5 text-sm">
               <span className="text-muted-foreground">
                 {t("confirm.grossPay")}
               </span>
               <Input
+                className="h-11 bg-card"
                 type="number"
                 min={0}
                 step="0.01"
@@ -194,9 +200,10 @@ export default function ConfirmPage() {
             </label>
           </div>
 
-          <label className="flex flex-col gap-1 text-sm">
+          <label className="flex flex-col gap-1.5 text-sm">
             <span className="text-muted-foreground">{t("confirm.notes")}</span>
             <Input
+              className="h-11 bg-card"
               value={effective.notes ?? ""}
               onChange={(e) => update("notes", e.target.value || undefined)}
             />
@@ -221,6 +228,6 @@ export default function ConfirmPage() {
           </p>
         </CardFooter>
       </Card>
-    </main>
+    </AppShell>
   );
 }

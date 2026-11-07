@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useState, useSyncExternalStore } from "react";
+import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -13,7 +13,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { saveDraftEvidence } from "@/lib/draft";
-import { LanguageToggle, useI18n } from "@/lib/i18n";
+import { useI18n } from "@/lib/i18n";
 import type { Evidence } from "@/lib/types";
 
 const emptySubscribe = () => () => {};
@@ -94,30 +94,24 @@ export default function UploadPage() {
   }
 
   return (
-    <main className="mx-auto flex w-full max-w-lg flex-1 flex-col gap-4 px-4 py-8">
-      <div className="flex items-center justify-between gap-2">
-        <Link
-          href="/"
-          className="text-sm text-muted-foreground underline-offset-4 hover:underline"
-        >
-          {t("nav.backHome")}
-        </Link>
-        <div className="flex items-center gap-3">
-          <p className="text-xs tracking-wide text-muted-foreground uppercase">
-            {t("upload.step")}
-          </p>
-          <LanguageToggle />
-        </div>
-      </div>
+    <AppShell title={t("nav.proof")} headerRight={t("upload.step")}>
+      <header className="flex flex-col gap-1">
+        <h1 className="text-2xl font-semibold tracking-tight">
+          {t("upload.title")}
+        </h1>
+        <p className="text-sm text-muted-foreground">{t("upload.description")}</p>
+      </header>
 
-      <Card>
+      <Card size="sm" className="shadow-none">
         <CardHeader>
-          <CardTitle>{t("upload.title")}</CardTitle>
-          <CardDescription>{t("upload.description")}</CardDescription>
+          <CardTitle className="text-base">{t("upload.title")}</CardTitle>
+          <CardDescription>
+            {t("upload.takePhoto")} / {t("upload.choosePhoto")}
+          </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
           {!secure ? (
-            <div className="rounded-xl border border-amber-600/30 bg-amber-50 px-3 py-3 text-sm text-amber-950">
+            <div className="rounded-md border border-amber-700/25 bg-amber-50/80 px-3 py-3 text-sm text-amber-950">
               <p className="font-medium">{t("upload.httpsBlockedTitle")}</p>
               <p className="mt-1 text-amber-900/80">
                 {t("upload.httpsBlockedBody")}
@@ -180,11 +174,11 @@ export default function UploadPage() {
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={previewUrl}
-              alt=""
-              className="max-h-72 w-full rounded-lg object-contain ring-1 ring-border"
+              alt="Selected proof document preview"
+              className="max-h-72 w-full rounded-md object-contain ring-1 ring-border"
             />
           ) : (
-            <div className="flex h-48 flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-border px-4 text-center text-sm text-muted-foreground">
+            <div className="flex h-44 flex-col items-center justify-center gap-1 rounded-md border border-dashed border-border bg-[var(--page)] px-4 text-center text-sm text-muted-foreground">
               <span>{t("upload.preview")}</span>
               <span className="text-xs">{t("upload.allowCamera")}</span>
             </div>
@@ -196,10 +190,10 @@ export default function UploadPage() {
             </p>
           ) : null}
         </CardContent>
-        <CardFooter className="flex flex-col gap-2 sm:flex-row">
+        <CardFooter>
           <Button
             type="button"
-            className="h-11 w-full flex-1 text-base"
+            className="h-11 w-full text-base"
             onClick={onExtract}
             disabled={!file || loading}
           >
@@ -208,9 +202,7 @@ export default function UploadPage() {
         </CardFooter>
       </Card>
 
-      <p className="text-center text-xs text-muted-foreground">
-        {t("upload.footer")}
-      </p>
-    </main>
+      <p className="text-xs text-muted-foreground">{t("upload.footer")}</p>
+    </AppShell>
   );
 }

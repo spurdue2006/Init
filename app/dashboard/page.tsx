@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Suspense, useState, useSyncExternalStore } from "react";
+import { AppShell } from "@/components/app-shell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,23 +14,19 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
+import { useI18n } from "@/lib/i18n";
 import { ProofPacket } from "@/lib/pdf";
-import { LanguageToggle, useI18n } from "@/lib/i18n";
 import {
   EARNINGS_THRESHOLD,
   HOURS_THRESHOLD,
   computeMonthStatus,
 } from "@/lib/rules";
-import { mariaEvidence } from "@/lib/seed/maria";
-import {
-  deleteAllEvidence,
-  listEvidence,
-  replaceAllEvidence,
-} from "@/lib/storage";
+import { deleteAllEvidence, listEvidence } from "@/lib/storage";
 import type { Evidence, MetBy, MonthStatus } from "@/lib/types";
 
 const emptySubscribe = () => () => {};
 
+/** Stable empty status for SSR / first paint — no `new Date()`. */
 const PLACEHOLDER_STATUS: MonthStatus = {
   month: "2026-11",
   hours: 0,
@@ -56,6 +53,7 @@ function shortMonthLabel(month: string, locale: string): string {
   );
 }
 
+/** Calendar months (YYYY-MM) overlapped by confirmed evidence periods. */
 function monthsFromEvidence(evidence: Evidence[]): string[] {
   const months = new Set<string>();
   for (const row of evidence) {
@@ -92,6 +90,7 @@ function DashboardContent() {
   const [phone, setPhone] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showDanger, setShowDanger] = useState(false);
 
   void tick;
   const items = mounted ? listEvidence() : [];
@@ -124,7 +123,7 @@ function DashboardContent() {
     return start <= month && end >= month;
   });
 
-  function pathLabel(metBy: MetBy): string {
+  function metByLabel(metBy: MetBy): string {
     switch (metBy) {
       case "hours":
         return t("dashboard.pathHours");
@@ -141,12 +140,6 @@ function DashboardContent() {
     setTick((n) => n + 1);
     setError(null);
     setMessage(note ?? null);
-  }
-
-  function onLoadMaria() {
-    replaceAllEvidence(mariaEvidence);
-    setMonthOverride("2026-11");
-    refresh(t("dashboard.mariaLoaded"));
   }
 
   async function onDownloadPdf() {
@@ -206,25 +199,7 @@ function DashboardContent() {
   }
 
   return (
-    <main className="mx-auto flex w-full max-w-lg flex-1 flex-col gap-4 px-4 py-8">
-      <div className="flex items-center justify-between gap-2">
-        <Link
-          href="/"
-          className="text-sm text-muted-foreground underline-offset-4 hover:underline"
-        >
-          {t("nav.backHome")}
-        </Link>
-        <div className="flex items-center gap-3">
-          <Link
-            href="/exempt"
-            className="text-sm text-muted-foreground underline-offset-4 hover:underline"
-          >
-            {t("nav.exempt")}
-          </Link>
-          <LanguageToggle />
-        </div>
-      </div>
-
+    <AppShell title={t("nav.progress")}>
       <header className="flex flex-col gap-1">
         <h1 className="text-2xl font-semibold tracking-tight">
           {t("dashboard.title")}
@@ -232,58 +207,55 @@ function DashboardContent() {
         <p className="text-sm text-muted-foreground">{t("dashboard.subtitle")}</p>
       </header>
 
-      {evidenceMonths.length > 0 ? (
-        <div className="flex flex-col gap-2">
-          <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-            {t("dashboard.monthsWithProof")}
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {evidenceMonths.map((m) => {
-              const active = m === month;
-              return (
-                <Button
-                  key={m}
-                  type="button"
-                  size="sm"
-                  variant={active ? "default" : "outline"}
-                  className="rounded-full"
-                  onClick={() => setMonthOverride(m)}
-                >
-                  {shortMonthLabel(m, locale)}
-                </Button>
-              );
-            })}
-          </div>
-        </div>
-      ) : null}
-
-      <label className="flex flex-col gap-1 text-sm">
-        <span className="text-muted-foreground">{t("dashboard.pickMonth")}</span>
+      <label className="flex flex-col gap-1.5 text-sm">
+        <span className="text-muted-foreground">{t("dashboard.month")}</span>
         <Input
           type="month"
           value={month}
           onChange={(e) => setMonthOverride(e.target.value)}
+          className="h-11 bg-card"
         />
+        {evidenceMonths.length > 0 ? (
+          <div className="flex flex-wrap gap-1.5 pt-1">
+            {evidenceMonths.map((m) => {
+              const active = m === month;
+              return (
+                <button
+                  key={m}
+                  type="button"
+                  onClick={() => setMonthOverride(m)}
+                  className={`rounded-md px-2.5 py-1.5 text-xs transition-colors ${
+                    active
+                      ? "bg-foreground text-background"
+                      : "bg-card text-muted-foreground ring-1 ring-border hover:text-foreground"
+                  }`}
+                >
+                  {shortMonthLabel(m, locale)}
+                </button>
+              );
+            })}
+          </div>
+        ) : null}
       </label>
 
       {selectedEmpty && otherMonthsWithData.length > 0 ? (
-        <div className="rounded-xl border border-amber-600/30 bg-amber-50 px-4 py-3 text-sm text-amber-950 dark:bg-amber-950/30 dark:text-amber-50">
-          <p className="font-medium">{t("dashboard.wrongMonthTitle")}</p>
-          <p className="mt-1 text-amber-900/80 dark:text-amber-50/80">
+        <div className="rounded-md border border-amber-700/25 bg-amber-50/80 px-3 py-3 text-sm text-amber-950 dark:bg-amber-950/25 dark:text-amber-50">
+          <p>
             {t("dashboard.wrongMonthBody", {
               months: otherMonthsWithData
-                .map((m) => monthLabel(m, locale))
+                .map((m) => shortMonthLabel(m, locale))
                 .join(", "),
               selected: monthLabel(month, locale),
             })}
           </p>
-          <div className="mt-3 flex flex-wrap gap-2">
+          <div className="mt-2 flex flex-wrap gap-1.5">
             {otherMonthsWithData.map((m) => (
               <Button
                 key={m}
                 type="button"
                 size="sm"
-                className="rounded-full"
+                variant="outline"
+                className="h-8"
                 onClick={() => setMonthOverride(m)}
               >
                 {t("dashboard.showMonth", {
@@ -297,7 +269,7 @@ function DashboardContent() {
 
       {status.atRisk ? (
         <div
-          className="rounded-xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive"
+          className="rounded-md border border-destructive/30 bg-destructive/5 px-3 py-3 text-sm text-destructive"
           role="alert"
         >
           {t("dashboard.atRisk", {
@@ -307,7 +279,7 @@ function DashboardContent() {
         </div>
       ) : null}
 
-      <Card size="sm" className="overflow-hidden">
+      <Card size="sm" className="overflow-hidden bg-card shadow-none">
         <CardHeader className="border-b border-border/60 pb-4">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
@@ -320,20 +292,19 @@ function DashboardContent() {
                   /{HOURS_THRESHOLD} hrs
                 </span>
               </CardTitle>
-              <CardDescription className="mt-1">
+              <CardDescription className="mt-1.5">
                 {t("dashboard.daysLeft", { n: status.daysLeft })} ·{" "}
-                {pathLabel(status.metBy)}
+                {metByLabel(status.metBy)}
               </CardDescription>
             </div>
-            {status.metBy !== "none" ? (
-              <Badge className="shrink-0">
-                {t("dashboard.metVia", { path: status.metBy })}
-              </Badge>
-            ) : (
-              <Badge variant="secondary" className="shrink-0">
-                {t("dashboard.hrsLeft", { n: status.hoursRemaining })}
-              </Badge>
-            )}
+            <Badge
+              variant={status.metBy !== "none" ? "default" : "secondary"}
+              className="shrink-0"
+            >
+              {status.metBy !== "none"
+                ? t("dashboard.metVia", { path: status.metBy })
+                : t("dashboard.hrsLeft", { n: status.hoursRemaining })}
+            </Badge>
           </div>
         </CardHeader>
         <CardContent className="flex flex-col gap-5 pt-4">
@@ -346,7 +317,7 @@ function DashboardContent() {
                 {status.hours} / {HOURS_THRESHOLD}
               </span>
             </div>
-            <Progress value={hoursPct} className="h-2.5" />
+            <Progress value={hoursPct} className="h-1.5" />
           </div>
           <div className="flex flex-col gap-2">
             <div className="flex items-end justify-between gap-2">
@@ -357,7 +328,7 @@ function DashboardContent() {
                 ${status.earnings.toFixed(2)} / ${EARNINGS_THRESHOLD}
               </span>
             </div>
-            <Progress value={earningsPct} className="h-2.5" />
+            <Progress value={earningsPct} className="h-1.5" />
             {status.earnings >= EARNINGS_THRESHOLD ? (
               <p className="text-xs text-muted-foreground">
                 {t("dashboard.earningsCleared")}
@@ -373,17 +344,13 @@ function DashboardContent() {
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-        <Button
-          type="button"
-          variant="secondary"
-          className="h-11 w-full"
-          onClick={onLoadMaria}
-        >
-          {t("dashboard.loadMaria")}
+      <div className="flex flex-col gap-2">
+        <Button asChild className="h-11 w-full">
+          <Link href="/upload">{t("dashboard.uploadMore")}</Link>
         </Button>
         <Button
           type="button"
+          variant="secondary"
           className="h-11 w-full"
           onClick={onDownloadPdf}
           disabled={pdfBusy || items.length === 0}
@@ -392,21 +359,18 @@ function DashboardContent() {
         </Button>
       </div>
 
-      <Button asChild variant="outline" className="h-11 w-full">
-        <Link href="/upload">{t("dashboard.uploadMore")}</Link>
-      </Button>
-
-      <Card>
+      <Card size="sm" className="shadow-none">
         <CardHeader>
-          <CardTitle>{t("dashboard.smsTitle")}</CardTitle>
+          <CardTitle className="text-base">{t("dashboard.smsTitle")}</CardTitle>
           <CardDescription>{t("dashboard.smsDesc")}</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-3">
-          <label className="flex flex-col gap-1 text-sm">
+          <label className="flex flex-col gap-1.5 text-sm">
             <span className="text-muted-foreground">
               {t("dashboard.smsPhone")}
             </span>
             <Input
+              className="h-11 bg-card"
               type="tel"
               inputMode="tel"
               placeholder="+15551234567"
@@ -427,7 +391,7 @@ function DashboardContent() {
       </Card>
 
       {message ? (
-        <p className="rounded-xl bg-secondary px-3 py-2 text-sm text-secondary-foreground">
+        <p className="rounded-md border border-border bg-card px-3 py-2 text-sm">
           {message}
         </p>
       ) : null}
@@ -437,85 +401,98 @@ function DashboardContent() {
         </p>
       ) : null}
 
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("dashboard.evidenceTitle")}</CardTitle>
-          <CardDescription>{t("dashboard.evidenceDesc")}</CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-3">
-          {items.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              {t("dashboard.noEvidence")}
-            </p>
-          ) : (
-            items.map((item) => {
+      <section className="flex flex-col gap-3">
+        <div>
+          <h2 className="text-sm font-semibold tracking-tight">
+            {t("dashboard.evidenceTitle")}
+          </h2>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            {t("dashboard.evidenceDesc")}
+          </p>
+        </div>
+
+        {items.length === 0 ? (
+          <p className="rounded-md border border-dashed border-border bg-card/60 px-3 py-6 text-center text-sm text-muted-foreground">
+            {t("dashboard.noEvidence")}
+          </p>
+        ) : (
+          <ul className="flex flex-col gap-2">
+            {items.map((item) => {
               const rowMonth = primaryMonthForRow(item);
               const inView = rowMonth === month;
               return (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => setMonthOverride(rowMonth)}
-                  className={`w-full rounded-xl border px-3 py-3 text-left text-sm transition-colors ${
-                    inView
-                      ? "border-foreground/20 bg-muted/40"
-                      : "border-border hover:bg-muted/30"
-                  }`}
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <p className="font-medium">
-                      {item.source}{" "}
-                      <span className="font-normal text-muted-foreground">
-                        ({item.type})
+                <li key={item.id}>
+                  <button
+                    type="button"
+                    onClick={() => setMonthOverride(rowMonth)}
+                    className={`w-full rounded-md border bg-card px-3 py-3 text-left text-sm transition-colors ${
+                      inView
+                        ? "border-foreground/25"
+                        : "border-border hover:border-foreground/15"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="truncate font-medium">{item.source}</p>
+                        <p className="mt-0.5 text-xs capitalize text-muted-foreground">
+                          {item.type}
+                          {item.userConfirmed
+                            ? ""
+                            : ` · ${t("dashboard.notConfirmed")}`}
+                        </p>
+                      </div>
+                      <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
+                        {shortMonthLabel(rowMonth, locale)}
                       </span>
+                    </div>
+                    <p className="mt-2 text-xs tabular-nums text-muted-foreground">
+                      {item.periodStart} → {item.periodEnd}
+                      {item.hours !== undefined ? ` · ${item.hours} hrs` : ""}
+                      {item.grossPay !== undefined
+                        ? ` · $${item.grossPay}`
+                        : ""}
                     </p>
-                    <Badge variant={inView ? "default" : "outline"}>
-                      {shortMonthLabel(rowMonth, locale)}
-                    </Badge>
-                  </div>
-                  <p className="mt-1 text-muted-foreground">
-                    {item.periodStart} → {item.periodEnd}
-                    {item.hours !== undefined ? ` · ${item.hours} hrs` : ""}
-                    {item.grossPay !== undefined
-                      ? ` · $${item.grossPay}`
-                      : ""}
-                    {item.userConfirmed
-                      ? ` · ${t("dashboard.confirmed")}`
-                      : ` · ${t("dashboard.notConfirmed")}`}
-                  </p>
-                  {!inView ? (
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      {t("dashboard.tapToShow", {
-                        month: shortMonthLabel(rowMonth, locale),
-                      })}
-                    </p>
-                  ) : null}
-                </button>
+                  </button>
+                </li>
               );
-            })
-          )}
+            })}
+          </ul>
+        )}
 
-          {items.length > 0 ? (
-            <Button
-              type="button"
-              variant="destructive"
-              className="w-full"
-              onClick={() => {
-                deleteAllEvidence();
-                setMonthOverride(null);
-                refresh(t("dashboard.deleted"));
-              }}
-            >
-              {t("dashboard.deleteAll")}
-            </Button>
-          ) : null}
-        </CardContent>
-      </Card>
-
-      <p className="text-center text-xs text-muted-foreground">
-        {t("dashboard.disclaimer")}
-      </p>
-    </main>
+        {items.length > 0 ? (
+          <div className="pt-2">
+            {!showDanger ? (
+              <button
+                type="button"
+                className="text-xs text-muted-foreground underline-offset-4 hover:underline"
+                onClick={() => setShowDanger(true)}
+              >
+                {t("dashboard.dataPrivacy")}
+              </button>
+            ) : (
+              <div className="rounded-md border border-border bg-card px-3 py-3">
+                <p className="text-xs text-muted-foreground">
+                  {t("dashboard.deleteHint")}
+                </p>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  className="mt-3 h-10 w-full"
+                  onClick={() => {
+                    deleteAllEvidence();
+                    setMonthOverride(null);
+                    setShowDanger(false);
+                    refresh(t("dashboard.deleted"));
+                  }}
+                >
+                  {t("dashboard.deleteAll")}
+                </Button>
+              </div>
+            )}
+          </div>
+        ) : null}
+      </section>
+    </AppShell>
   );
 }
 
@@ -524,7 +501,7 @@ export default function DashboardPage() {
     <Suspense
       fallback={
         <main className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
-          …
+          Loading…
         </main>
       }
     >

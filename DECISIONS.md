@@ -15,6 +15,22 @@ Format:
 
 ---
 
+## 2026-11-07 — Experimental UI shell on `KANAV-UI` branch
+
+- **Context:** Product UI felt prototype-heavy (ad-hoc nav, Maria + delete on
+  dashboard, duplicated evidence lists). Wanted a calmer, easier-to-manage layout
+  without risking `main`.
+- **Decision:** Isolate a quieter shell on branch **`KANAV-UI`**: sticky brand +
+  Home/Proof/Progress nav, shared FSSA disclaimer footer, home as router (sample
+  data only when empty), dashboard status-first with delete behind a disclosure,
+  softer “estimate / on track” copy. Discard the branch if we keep the old UI.
+  After Shlok’s Phase 3 i18n/SMS landed on `main`, rebased merge kept AppShell
+  and wired `useI18n` / LanguageToggle / Twilio SMS card + `suppressHydrationWarning`
+  on `<body>` (browser-extension attribute noise).
+- **Source / why:** Trust / clarity for HIP prep tool; ownership note — Shlok
+  owns `app/**`; this is an optional Kanav experiment, merge only if both agree.
+- **Owners:** Kanav (experiment); Shlok (product UI owner)
+
 ## AI extract mistakes / overrides
 
 Log Gemini `/api/extract` misses here so we do not silently “fix” bad totals.

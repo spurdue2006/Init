@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useState, useSyncExternalStore } from "react";
+import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -11,8 +12,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { LanguageToggle, useI18n } from "@/lib/i18n";
-import { deleteAllEvidence, listEvidence } from "@/lib/storage";
+import { useI18n } from "@/lib/i18n";
+import { mariaEvidence } from "@/lib/seed/maria";
+import { listEvidence, replaceAllEvidence } from "@/lib/storage";
 
 const emptySubscribe = () => () => {};
 
@@ -21,41 +23,53 @@ function HomeContent() {
   const searchParams = useSearchParams();
   const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
   const [tick, setTick] = useState(0);
+  const [demoNote, setDemoNote] = useState<string | null>(null);
   const saved = searchParams.get("saved") === "1";
 
-  const items = mounted ? listEvidence() : [];
   void tick;
+  const items = mounted ? listEvidence() : [];
+  const hasData = items.length > 0;
 
-  const countLabel =
-    items.length === 1
-      ? t("home.evidenceCount", { count: items.length })
-      : t("home.evidenceCount_plural", { count: items.length });
+  function onLoadMaria() {
+    replaceAllEvidence(mariaEvidence);
+    setTick((n) => n + 1);
+    setDemoNote(t("home.mariaLoaded"));
+  }
+
+  const progressLabel = hasData
+    ? items.length === 1
+      ? t("home.openProgressWithCount", { count: items.length })
+      : t("home.openProgressWithCount_plural", { count: items.length })
+    : t("home.openDashboard");
 
   return (
-    <main className="mx-auto flex w-full max-w-lg flex-1 flex-col gap-6 px-4 py-10">
-      <div className="flex justify-end">
-        <LanguageToggle />
-      </div>
-
-      <header className="flex flex-col gap-2 text-center">
-        <p className="text-sm font-medium tracking-wide text-muted-foreground uppercase">
-          {t("brand")}
-        </p>
-        <h1 className="text-3xl font-semibold tracking-tight">
+    <AppShell title={t("nav.home")}>
+      <header className="flex flex-col gap-2 pt-1">
+        <h1 className="text-2xl font-semibold tracking-tight">
           {t("home.title")}
         </h1>
-        <p className="text-muted-foreground">{t("home.subtitle")}</p>
+        <p className="text-sm leading-relaxed text-muted-foreground">
+          {t("home.subtitle")}
+        </p>
       </header>
 
       {saved ? (
-        <p className="rounded-lg bg-secondary px-3 py-2 text-center text-sm text-secondary-foreground">
+        <p className="rounded-md border border-border bg-card px-3 py-2 text-sm">
           {t("home.saved")}
+        </p>
+      ) : null}
+
+      {demoNote ? (
+        <p className="rounded-md border border-border bg-card px-3 py-2 text-sm">
+          {demoNote}
         </p>
       ) : null}
 
       <div className="flex flex-col gap-2">
         <Button asChild size="lg" className="h-12 w-full text-base">
-          <Link href="/upload">{t("nav.upload")}</Link>
+          <Link href="/upload">
+            {hasData ? t("home.uploadMore") : t("nav.upload")}
+          </Link>
         </Button>
         <Button
           asChild
@@ -63,61 +77,32 @@ function HomeContent() {
           variant="secondary"
           className="h-12 w-full text-base"
         >
-          <Link href="/dashboard">{t("home.openDashboard")}</Link>
+          <Link href="/dashboard">{progressLabel}</Link>
         </Button>
         <Button asChild variant="outline" className="h-11 w-full">
           <Link href="/exempt">{t("nav.exempt")}</Link>
         </Button>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("home.savedTitle")}</CardTitle>
-          <CardDescription>
-            {items.length === 0 ? t("home.nothingSaved") : countLabel}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-3">
-          {items.map((item) => (
-            <div
-              key={item.id}
-              className="rounded-lg border border-border px-3 py-2 text-left text-sm"
-            >
-              <p className="font-medium">
-                {item.source}{" "}
-                <span className="text-muted-foreground">({item.type})</span>
-              </p>
-              <p className="text-muted-foreground">
-                {item.periodStart} → {item.periodEnd}
-                {item.hours !== undefined ? ` · ${item.hours} hrs` : ""}
-                {item.grossPay !== undefined ? ` · $${item.grossPay}` : ""}
-                {item.userConfirmed
-                  ? ` · ${t("home.confirmed")}`
-                  : ` · ${t("home.draft")}`}
-              </p>
-            </div>
-          ))}
-
-          {items.length > 0 ? (
+      {!hasData ? (
+        <Card size="sm">
+          <CardHeader>
+            <CardTitle className="text-base">{t("home.trySampleTitle")}</CardTitle>
+            <CardDescription>{t("home.trySampleDesc")}</CardDescription>
+          </CardHeader>
+          <CardContent>
             <Button
               type="button"
-              variant="destructive"
-              className="w-full"
-              onClick={() => {
-                deleteAllEvidence();
-                setTick((n) => n + 1);
-              }}
+              variant="outline"
+              className="h-10 w-full"
+              onClick={onLoadMaria}
             >
-              {t("home.deleteAll")}
+              {t("home.loadMaria")}
             </Button>
-          ) : null}
-        </CardContent>
-      </Card>
-
-      <p className="text-center text-xs text-muted-foreground">
-        {t("home.disclaimer")}
-      </p>
-    </main>
+          </CardContent>
+        </Card>
+      ) : null}
+    </AppShell>
   );
 }
 
@@ -126,7 +111,7 @@ export default function Home() {
     <Suspense
       fallback={
         <main className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
-          …
+          Loading…
         </main>
       }
     >
