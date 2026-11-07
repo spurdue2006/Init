@@ -15,6 +15,16 @@ Format:
 
 ---
 
+## 2026-11-07 — Use Gemini (free) instead of Anthropic for extract
+
+- **Context:** Anthropic Claude API is paid; hackathon budget prefers $0.
+- **Decision:** Document vision for `/api/extract` uses **Google Gemini** via
+  `@google/genai` and `GEMINI_API_KEY` (AI Studio free tier). Removed
+  `@anthropic-ai/sdk` / `ANTHROPIC_API_KEY`. Fake fixtures only — do not upload
+  real pay stubs to free-tier APIs.
+- **Source / why:** Team cost constraint; Gemini free-tier vision is sufficient for MVP.
+- **Owners:** Shlok
+
 ## 2026-11-07 — Freeze Phase 0 contract
 
 - **Context:** Parallel work starting after scaffold.

@@ -32,7 +32,7 @@ heads-up. If you must touch a shared file, keep the diff tiny and call it out in
 
 ## Agent / Cursor rules
 
-Project rules live in [`.cursor/rules/`](.cursor/rules/). They tell Cursor/Claude to:
+Project rules live in [`.cursor/rules/`](.cursor/rules/). They tell Cursor agents to:
 
 - Read `RULES.md` before changing HIP logic or legal copy
 - Never invent thresholds or claim exemption/eligibility
