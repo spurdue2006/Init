@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useMemo, useState } from "react";
+import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -68,29 +68,24 @@ export default function ExemptPage() {
   }
 
   return (
-    <main className="mx-auto flex w-full max-w-lg flex-1 flex-col gap-4 px-4 py-8">
-      <div className="flex items-center justify-between gap-2">
-        <Link
-          href="/dashboard"
-          className="text-sm text-muted-foreground underline-offset-4 hover:underline"
-        >
-          ← Dashboard
-        </Link>
-        <Link
-          href="/"
-          className="text-sm text-muted-foreground underline-offset-4 hover:underline"
-        >
-          Home
-        </Link>
-      </div>
+    <AppShell title="Exemption check">
+      <header className="flex flex-col gap-1">
+        <h1 className="text-2xl font-semibold tracking-tight">
+          Exemption check
+        </h1>
+        <p className="text-sm text-muted-foreground">
+          Based on FSSA’s published list. This app only suggests you{" "}
+          <strong>might</strong> want to check — it never decides exemption or
+          eligibility.
+        </p>
+      </header>
 
-      <Card>
+      <Card size="sm" className="shadow-none">
         <CardHeader>
-          <CardTitle>Exemption check</CardTitle>
+          <CardTitle className="text-base">Short quiz</CardTitle>
           <CardDescription>
-            Based on FSSA’s published exemption list. This app only suggests you{" "}
-            <strong>might</strong> want to check — it never decides exemption or
-            eligibility.
+            Answer each question, then see a soft suggestion with official
+            links.
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-5">
@@ -103,6 +98,7 @@ export default function ExemptPage() {
                 <Button
                   type="button"
                   size="sm"
+                  className="h-9 min-w-16"
                   variant={answers[q.id] === "yes" ? "default" : "outline"}
                   onClick={() => setAnswer(q.id, "yes")}
                 >
@@ -111,6 +107,7 @@ export default function ExemptPage() {
                 <Button
                   type="button"
                   size="sm"
+                  className="h-9 min-w-16"
                   variant={answers[q.id] === "no" ? "default" : "outline"}
                   onClick={() => setAnswer(q.id, "no")}
                 >
@@ -131,7 +128,7 @@ export default function ExemptPage() {
           </Button>
 
           {submitted ? (
-            <div className="rounded-lg border border-border bg-muted/40 px-3 py-3 text-sm">
+            <div className="rounded-md border border-border bg-[var(--page)] px-3 py-3 text-sm">
               {anyYes ? (
                 <p>
                   Based on your answers, you <strong>may be exempt</strong> for
@@ -148,7 +145,7 @@ export default function ExemptPage() {
               <ul className="mt-3 flex flex-col gap-2">
                 <li>
                   <a
-                    className="text-primary underline-offset-4 hover:underline"
+                    className="underline-offset-4 hover:underline"
                     href={FSSA_MEMBERS}
                     target="_blank"
                     rel="noreferrer"
@@ -158,7 +155,7 @@ export default function ExemptPage() {
                 </li>
                 <li>
                   <a
-                    className="text-primary underline-offset-4 hover:underline"
+                    className="underline-offset-4 hover:underline"
                     href={FSSA_HUB}
                     target="_blank"
                     rel="noreferrer"
@@ -168,7 +165,7 @@ export default function ExemptPage() {
                 </li>
                 <li>
                   <a
-                    className="text-primary underline-offset-4 hover:underline"
+                    className="underline-offset-4 hover:underline"
                     href={BENEFITS_PORTAL}
                     target="_blank"
                     rel="noreferrer"
@@ -181,6 +178,6 @@ export default function ExemptPage() {
           ) : null}
         </CardFooter>
       </Card>
-    </main>
+    </AppShell>
   );
 }

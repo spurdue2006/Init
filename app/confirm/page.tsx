@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useSyncExternalStore } from "react";
+import { AppShell } from "@/components/app-shell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -54,7 +55,6 @@ export default function ConfirmPage() {
       };
       upsertEvidence(confirmed);
       clearDraftEvidence();
-      // Land on dashboard so month totals update for this pay period.
       router.push("/dashboard");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not save evidence");
@@ -63,53 +63,63 @@ export default function ConfirmPage() {
 
   if (!mounted) {
     return (
-      <main className="mx-auto flex max-w-lg flex-1 items-center justify-center px-4 py-16 text-sm text-muted-foreground">
-        Loading draft…
-      </main>
+      <AppShell title="Confirm">
+        <p className="py-12 text-center text-sm text-muted-foreground">
+          Loading draft…
+        </p>
+      </AppShell>
     );
   }
 
   if (!effective) {
     return (
-      <main className="mx-auto flex max-w-lg flex-1 flex-col items-center gap-4 px-4 py-16 text-center">
-        <p className="text-muted-foreground">No draft found. Upload a document first.</p>
-        <Button asChild>
-          <Link href="/upload">Go to upload</Link>
-        </Button>
-      </main>
+      <AppShell title="Confirm">
+        <div className="flex flex-col items-center gap-4 py-12 text-center">
+          <p className="text-sm text-muted-foreground">
+            No draft found. Upload a document first.
+          </p>
+          <Button asChild>
+            <Link href="/upload">Go to upload</Link>
+          </Button>
+        </div>
+      </AppShell>
     );
   }
 
   return (
-    <main className="mx-auto flex w-full max-w-lg flex-1 flex-col gap-4 px-4 py-8">
-      <div className="flex items-center justify-between gap-2">
-        <Link href="/upload" className="text-sm text-muted-foreground underline-offset-4 hover:underline">
-          ← Upload again
-        </Link>
-        <p className="text-xs tracking-wide text-muted-foreground uppercase">
-          Step 2 of 2
+    <AppShell title="Confirm" headerRight="Step 2 of 2">
+      <header className="flex flex-col gap-1">
+        <div className="flex items-start justify-between gap-2">
+          <h1 className="text-2xl font-semibold tracking-tight">
+            Confirm what was read
+          </h1>
+          <Badge variant="secondary" className="mt-1 shrink-0">
+            {Math.round(effective.confidence * 100)}% conf.
+          </Badge>
+        </div>
+        <p className="text-sm text-muted-foreground">
+          Fix any field before it counts. AI assists — you decide.
         </p>
-      </div>
+      </header>
 
-      <Card>
+      <Card size="sm" className="shadow-none">
         <CardHeader>
-          <div className="flex items-start justify-between gap-2">
-            <div>
-              <CardTitle>Confirm what AI read</CardTitle>
-              <CardDescription>
-                Fix any field before it counts. AI assists — you decide.
-              </CardDescription>
-            </div>
-            <Badge variant="secondary">
-              {Math.round(effective.confidence * 100)}% conf.
-            </Badge>
-          </div>
+          <CardTitle className="text-base">Evidence fields</CardTitle>
+          <CardDescription>
+            <Link
+              href="/upload"
+              className="underline-offset-4 hover:underline"
+            >
+              Upload again
+            </Link>{" "}
+            if this document is wrong.
+          </CardDescription>
         </CardHeader>
-        <CardContent className="flex flex-col gap-3">
-          <label className="flex flex-col gap-1 text-sm">
+        <CardContent className="flex flex-col gap-4">
+          <label className="flex flex-col gap-1.5 text-sm">
             <span className="text-muted-foreground">Type</span>
             <select
-              className="h-9 rounded-lg border border-input bg-transparent px-2.5 text-sm"
+              className="h-11 rounded-lg border border-input bg-card px-2.5 text-sm"
               value={effective.type}
               onChange={(e) => update("type", e.target.value as EvidenceType)}
             >
@@ -121,26 +131,29 @@ export default function ConfirmPage() {
             </select>
           </label>
 
-          <label className="flex flex-col gap-1 text-sm">
+          <label className="flex flex-col gap-1.5 text-sm">
             <span className="text-muted-foreground">Source</span>
             <Input
+              className="h-11 bg-card"
               value={effective.source}
               onChange={(e) => update("source", e.target.value)}
             />
           </label>
 
           <div className="grid grid-cols-2 gap-3">
-            <label className="flex flex-col gap-1 text-sm">
+            <label className="flex flex-col gap-1.5 text-sm">
               <span className="text-muted-foreground">Period start</span>
               <Input
+                className="h-11 bg-card"
                 type="date"
                 value={effective.periodStart}
                 onChange={(e) => update("periodStart", e.target.value)}
               />
             </label>
-            <label className="flex flex-col gap-1 text-sm">
+            <label className="flex flex-col gap-1.5 text-sm">
               <span className="text-muted-foreground">Period end</span>
               <Input
+                className="h-11 bg-card"
                 type="date"
                 value={effective.periodEnd}
                 onChange={(e) => update("periodEnd", e.target.value)}
@@ -149,9 +162,10 @@ export default function ConfirmPage() {
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <label className="flex flex-col gap-1 text-sm">
+            <label className="flex flex-col gap-1.5 text-sm">
               <span className="text-muted-foreground">Hours</span>
               <Input
+                className="h-11 bg-card"
                 type="number"
                 min={0}
                 step="0.25"
@@ -164,9 +178,10 @@ export default function ConfirmPage() {
                 }
               />
             </label>
-            <label className="flex flex-col gap-1 text-sm">
+            <label className="flex flex-col gap-1.5 text-sm">
               <span className="text-muted-foreground">Gross pay ($)</span>
               <Input
+                className="h-11 bg-card"
                 type="number"
                 min={0}
                 step="0.01"
@@ -181,9 +196,10 @@ export default function ConfirmPage() {
             </label>
           </div>
 
-          <label className="flex flex-col gap-1 text-sm">
+          <label className="flex flex-col gap-1.5 text-sm">
             <span className="text-muted-foreground">Notes</span>
             <Input
+              className="h-11 bg-card"
               value={effective.notes ?? ""}
               onChange={(e) => update("notes", e.target.value || undefined)}
             />
@@ -201,13 +217,14 @@ export default function ConfirmPage() {
             className="h-11 w-full text-base"
             onClick={onConfirm}
           >
-            Confirm & save on this device
+            Save & count toward month
           </Button>
           <p className="text-center text-xs text-muted-foreground">
-            Saved to localStorage only. You can delete all data later from Home.
+            Saved to this device only. You can delete everything later from
+            Progress.
           </p>
         </CardFooter>
       </Card>
-    </main>
+    </AppShell>
   );
 }
