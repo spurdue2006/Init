@@ -145,7 +145,9 @@ app/                 # Next.js App Router screens + API
 lib/
   rules.ts           # Month totals, earnings path, at-risk
   types.ts           # Shared Evidence / MonthStatus
-fixtures/            # Fake documents + expected JSON
+fixtures/            # Fake documents + expected JSON (Gemini extract eval)
+tests/               # Vitest rules engine tests
+.github/workflows/   # CI: lint, typecheck, test, build
 messages/            # en.json, es.json
 docs/sources/        # Official FSSA PDFs used for RULES.md citations
 RULES.md             # HIP pathways, exemptions, links (anti-hallucination)

@@ -172,8 +172,23 @@ Contacts for reporting (cite, don’t scrape secrets):
 - `"school"` — evidence marked half-time school / apprenticeship  
 - `"none"` — otherwise; `atRisk` if unmet and few days remain in the month  
 
-Cross-month pay periods (e.g. Oct 28–Nov 10) are **split by calendar month** in the
-rules engine (product decision; document overrides in `DECISIONS.md`).
+### Rules engine algorithm (`computeMonthStatus`)
+
+Concrete MVP behavior implemented in `lib/rules.ts` (also logged in `DECISIONS.md`):
+
+1. **Countable rows:** only evidence with `userConfirmed === true`.
+2. **Month key:** `YYYY-MM`.
+3. **Cross-month split:** for each row, take inclusive calendar days of
+   `periodStart`…`periodEnd` that fall inside the target month; attribute
+   `hours` and `grossPay` by that day fraction (e.g. Oct 28–Nov 10 → 4/14 to
+   October, 10/14 to November).
+4. **School:** any overlapping confirmed row with `type === "school"` →
+   `metBy: "school"` (MVP treats that as half-time enrollment for the month).
+5. **Priority:** `school` > `hours` (≥ 80) > `earnings` (≥ 580) > `none`.
+6. **`hoursRemaining`:** `max(0, 80 − hours)`.
+7. **`daysLeft`:** inclusive days from `asOf` (date-only) through the last day
+   of the month; `0` if `asOf` is after month end.
+8. **`atRisk`:** `metBy === "none"` and `0 < daysLeft ≤ 7`.
 
 ---
 

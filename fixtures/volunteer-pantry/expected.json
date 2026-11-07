@@ -1,0 +1,11 @@
+{
+  "id": "fixture-volunteer-pantry",
+  "type": "volunteer",
+  "source": "Neighborhood Food Pantry",
+  "periodStart": "2026-11-08",
+  "periodEnd": "2026-11-08",
+  "hours": 8,
+  "confidence": 0.88,
+  "userConfirmed": false,
+  "notes": "FAKE fixture — pantry Saturday shift"
+}

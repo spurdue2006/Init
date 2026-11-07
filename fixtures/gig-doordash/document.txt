@@ -1,0 +1,9 @@
+*** FAKE DOCUMENT — NOT A REAL PERSON ***
+
+DoorDash Earnings (screenshot stand-in)
+Driver: Demo User
+Period: November 1–30, 2026
+Active time: 14.0 hours
+Gross earnings: $210.00
+
+Fake gig screen for Gemini extract eval only.

@@ -15,6 +15,18 @@ Format:
 
 ---
 
+## 2026-11-07 — Rules engine algorithm (Phase 1)
+
+- **Context:** Implement `computeMonthStatus` for parallel UI work without
+  inventing HIP thresholds.
+- **Decision:** Only `userConfirmed` evidence counts. Cross-month periods split by
+  inclusive calendar-day proportion. `metBy` priority: school → hours (≥80) →
+  earnings (≥$580) → none. `atRisk` when unmet and `daysLeft` is 1–7. Maria demo
+  seed ≈ **62 hours** / **$550** earnings in November 2026 (40+14+8 hrs) so the
+  demo shows an unmet hours path without accidentally meeting via $580.
+- **Source / why:** [`RULES.md`](RULES.md) “Rules engine algorithm”; FSSA 80 / $580.
+- **Owners:** Kanav
+
 ## 2026-11-07 — Use Gemini (free) instead of Anthropic for extract
 
 - **Context:** Anthropic Claude API is paid; hackathon budget prefers $0.
