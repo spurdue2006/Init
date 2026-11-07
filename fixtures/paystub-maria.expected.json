@@ -1,9 +1,0 @@
-{
-  "type": "paystub",
-  "source": "Acme Home Health LLC",
-  "periodStart": "2026-11-01",
-  "periodEnd": "2026-11-15",
-  "hours": 32,
-  "grossPay": 420,
-  "notes": "Demo fixture — not a real document"
-}

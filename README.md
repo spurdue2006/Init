@@ -6,6 +6,16 @@ Snap a paystub, gig earnings screen, or volunteer sheet → Gemini turns it into
 
 > This is **not** an official FSSA tool. It helps you organize and prepare evidence. Always confirm status and report through [FSSA](https://www.in.gov/fssa/hip/hip-work-requirements/).
 
+## Live demo (judges)
+
+**URL:** [https://init-kanavkhurana3737-4212s-projects.vercel.app](https://init-kanavkhurana3737-4212s-projects.vercel.app)
+
+Scan the QR (phone) → same URL:
+
+![QR code for live demo](public/qr-demo.png)
+
+**Fake data only** in fixtures and the Maria demo. Never upload a real person’s pay stub.
+
 ---
 
 ## The problem
@@ -48,16 +58,16 @@ Official references:
 
 ## Demo flow (Maria)
 
-Judges can open the live URL on a phone and:
+Judges can open the [live URL](https://init-kanavkhurana3737-4212s-projects.vercel.app) on a phone and:
 
-1. Load **Maria** demo data (home health aide + DoorDash + pantry volunteering ≈ **62/80 hours** in November), or upload a **fake** fixture document.
-2. Confirm what the AI read.
-3. Watch the tracker update; see at-risk state if behind with few days left.
-4. Run the exemption check → FSSA pre-screener link.
-5. Download the PDF proof packet.
-6. (Stretch) Switch to Spanish / receive an SMS reminder on a Twilio trial number.
+1. Tap **Load Maria demo** on the dashboard (home health + DoorDash + pantry ≈ **62/80 hours** in November 2026), **or** upload a **fake** image from `fixtures/*/document.png` (or `paystub-maria/document.jpg`).
+2. On upload: review the confirm screen — fix any field the model misread, then save.
+3. On the dashboard: watch month totals update; unmet + few days left shows **at-risk**.
+4. Open **Exempt?** → soft suggestion only + link to FSSA’s official pre-screener (we never say “you are exempt”).
+5. Download the **PDF proof packet** (prep evidence, not a filing).
+6. (Stretch, if enabled) Spanish toggle / Twilio SMS reminder.
 
-**Only fake data in fixtures and demos. Never upload a real person’s pay stub.**
+**Only fake data in fixtures and demos.**
 
 ---
 
@@ -133,11 +143,11 @@ MonthStatus {
 - **Document reading:** Gemini vision extracts structured fields from uploaded images via `/api/extract`.
 - **Human check:** Confirm screen is required so bad extractions don’t silently corrupt the month total.
 - **Guardrails:** Zod schema validation; SSN / account-number redaction; mistakes and overrides logged in [`DECISIONS.md`](DECISIONS.md).
-- **Eval (optional):** `npm run eval` runs fixtures through extract and reports a score (e.g. `14/16 docs correct`).
+- **Eval (optional):** `npm run eval` schema-checks each `fixtures/*/expected.json` and, with `npm run dev` + fixture images, live-scores Gemini via `/api/extract` (currently **4** fake fixtures).
 
 ---
 
-## Project layout (target)
+## Project layout
 
 ```text
 app/                 # Next.js App Router screens + API
@@ -145,11 +155,14 @@ app/                 # Next.js App Router screens + API
 lib/
   rules.ts           # Month totals, earnings path, at-risk
   types.ts           # Shared Evidence / MonthStatus
-fixtures/            # Fake documents + expected JSON (Gemini extract eval)
-tests/               # Vitest rules engine tests
+  pdf/               # ProofPacket (@react-pdf/renderer)
+  seed/maria.ts      # Fake Maria demo evidence
+fixtures/            # Fake docs + images + expected JSON (extract eval)
+tests/               # Vitest rules + redaction tests
+scripts/eval.ts      # Optional AI accuracy harness
 .github/workflows/   # CI: lint, typecheck, test, build
-messages/            # en.json, es.json
 docs/sources/        # Official FSSA PDFs used for RULES.md citations
+public/qr-demo.png   # QR → live demo URL
 RULES.md             # HIP pathways, exemptions, links (anti-hallucination)
 DECISIONS.md         # Where AI was wrong / we overrode it
 CONTRIBUTING.md      # Branch/PR workflow — never push straight to main

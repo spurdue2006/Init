@@ -1,0 +1,12 @@
+{
+  "id": "fixture-paystub-maria",
+  "type": "paystub",
+  "source": "ACME Home Health LLC",
+  "periodStart": "2026-11-01",
+  "periodEnd": "2026-11-15",
+  "hours": 32,
+  "grossPay": 420,
+  "confidence": 0.9,
+  "userConfirmed": false,
+  "notes": "FAKE fixture \u2014 Maria demo paystub image"
+}

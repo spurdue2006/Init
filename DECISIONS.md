@@ -31,16 +31,25 @@ Format:
 - **Owners:** Kanav / Shlok
 ```
 
-### 2026-11-07 — Eval harness ready (no live misses yet)
+### 2026-11-07 — Phase 3 fixtures image-ready (live score pending key)
 
-- **Context:** Phase 2 K8/K9. Extract route lives on Shlok’s branch; main fixtures
-  are text stand-ins (`document.txt`), while `/api/extract` requires multipart
-  `image`.
+- **Got:** Schema score **4/4** (`gig-doordash`, `paystub-acme`, `paystub-maria`,
+  `volunteer-pantry`). Live Gemini field score skipped locally until
+  `GEMINI_API_KEY` is set in `.env.local` and `npm run dev` is running.
+- **Expected:** Live field rows per fixture after extract is exercised.
+- **Override / fix:** Append Got/Expected field rows below as soon as live eval
+  prints mismatches (or note “clean” if all fields match).
+- **Owners:** Kanav
+
+### 2026-11-07 — Eval harness ready (Phase 2; images added in Phase 3)
+
+- **Context:** Phase 2 K8/K9. Extract route needs multipart `image`; early fixtures
+  were text-only.
 - **Decision:** `npm run eval` always schema-validates `expected.json`. Live
-  Gemini scoring runs only when the extract URL is up **and** the fixture folder
-  has an image. Until then, no field-level AI mistakes to log — start appending
-  rows above when live eval reports mismatches.
-- **Source / why:** Parallel Phase 2; fake fixtures only (never real pay stubs).
+  Gemini scoring runs when extract is up **and** the fixture folder has an image.
+  Phase 3 added images for all four fixture folders; field-level rows are logged
+  below after live runs.
+- **Source / why:** Parallel Phase 2 → Phase 3 K11; fake fixtures only.
 - **Owners:** Kanav
 
 ## 2026-11-07 — Rules engine algorithm (Phase 1)
@@ -69,9 +78,22 @@ Format:
 
 - **Context:** Parallel work starting after scaffold.
 - **Decision:** `Evidence` / `MonthStatus` / `EvidenceSchema` in `lib/types.ts` are the
-  shared contract. Stub signatures for `computeMonthStatus`, `mariaEvidence`, and
-  `<ProofPacket />` are importable but unimplemented.
+  shared contract. Import surfaces (`computeMonthStatus`, `mariaEvidence`,
+  `<ProofPacket />`) kept stable so Shlok’s UI can land in parallel. **Phase 1–2
+  filled the bodies** (rules engine, Maria seed, real ProofPacket); signatures
+  unchanged.
 - **Source / why:** Phase 0 plan; README core data shape.
+- **Owners:** Kanav
+
+## 2026-11-07 — Phase 3 judge URL + QR (K10)
+
+- **Context:** Hackathon judges need a phone-openable production link and QR.
+- **Decision:** Document production demo at
+  `https://init-kanavkhurana3737-4212s-projects.vercel.app` with
+  [`public/qr-demo.png`](public/qr-demo.png). Keep Deployment Protection off (or
+  shareable) so judges are not blocked by Vercel login. `GEMINI_API_KEY` must be
+  set on Vercel **Production**.
+- **Source / why:** Phase 3 K10; README live demo section.
 - **Owners:** Kanav
 
 ## 2026-11-07 — Authoritative HIP numbers from FSSA

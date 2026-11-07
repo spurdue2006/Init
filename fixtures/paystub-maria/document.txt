@@ -1,0 +1,11 @@
+*** FAKE DOCUMENT — NOT A REAL PERSON ***
+
+ACME HOME HEALTH LLC
+Employee Pay Statement
+
+Employee: Maria Demo
+Pay period: 2026-11-01 to 2026-11-15
+Hours worked: 32.00
+Gross pay: $420.00
+
+Demo fixture image lives alongside as document.jpg.
