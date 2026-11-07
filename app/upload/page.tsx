@@ -17,7 +17,8 @@ import type { Evidence } from "@/lib/types";
 
 export default function UploadPage() {
   const router = useRouter();
-  const inputRef = useRef<HTMLInputElement>(null);
+  const cameraRef = useRef<HTMLInputElement>(null);
+  const libraryRef = useRef<HTMLInputElement>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
@@ -82,7 +83,10 @@ export default function UploadPage() {
   return (
     <main className="mx-auto flex w-full max-w-lg flex-1 flex-col gap-4 px-4 py-8">
       <div className="flex items-center justify-between gap-2">
-        <Link href="/" className="text-sm text-muted-foreground underline-offset-4 hover:underline">
+        <Link
+          href="/"
+          className="text-sm text-muted-foreground underline-offset-4 hover:underline"
+        >
           ← Home
         </Link>
         <p className="text-xs tracking-wide text-muted-foreground uppercase">
@@ -94,29 +98,56 @@ export default function UploadPage() {
         <CardHeader>
           <CardTitle>Upload proof</CardTitle>
           <CardDescription>
-            Snap a paystub, gig earnings screen, or volunteer sheet. The photo
-            is read in memory and not saved on a server.
+            On a phone, use <strong>Take photo</strong> to open the rear camera.
+            Photos are read in memory and not saved on a server.
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
+          {/* capture=environment → rear camera on most phones */}
           <input
-            ref={inputRef}
+            ref={cameraRef}
             type="file"
             accept="image/*"
             capture="environment"
             className="sr-only"
-            onChange={(e) => onFileChange(e.target.files?.[0] ?? null)}
+            onChange={(e) => {
+              onFileChange(e.target.files?.[0] ?? null);
+              e.target.value = "";
+            }}
+          />
+          {/* no capture → photo library / Files */}
+          <input
+            ref={libraryRef}
+            type="file"
+            accept="image/*"
+            className="sr-only"
+            onChange={(e) => {
+              onFileChange(e.target.files?.[0] ?? null);
+              e.target.value = "";
+            }}
           />
 
-          <Button
-            type="button"
-            size="lg"
-            className="h-12 w-full text-base"
-            onClick={() => inputRef.current?.click()}
-            disabled={loading}
-          >
-            {file ? "Retake / choose another" : "Open camera or photos"}
-          </Button>
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            <Button
+              type="button"
+              size="lg"
+              className="h-12 w-full text-base"
+              onClick={() => cameraRef.current?.click()}
+              disabled={loading}
+            >
+              Take photo
+            </Button>
+            <Button
+              type="button"
+              size="lg"
+              variant="secondary"
+              className="h-12 w-full text-base"
+              onClick={() => libraryRef.current?.click()}
+              disabled={loading}
+            >
+              Choose photo
+            </Button>
+          </div>
 
           {previewUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -126,8 +157,11 @@ export default function UploadPage() {
               className="max-h-72 w-full rounded-lg object-contain ring-1 ring-border"
             />
           ) : (
-            <div className="flex h-48 items-center justify-center rounded-lg border border-dashed border-border text-sm text-muted-foreground">
-              Preview appears here
+            <div className="flex h-48 flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-border px-4 text-center text-sm text-muted-foreground">
+              <span>Preview appears here</span>
+              <span className="text-xs">
+                Allow camera access when the phone asks
+              </span>
             </div>
           )}
 
@@ -150,7 +184,10 @@ export default function UploadPage() {
       </Card>
 
       <p className="text-center text-xs text-muted-foreground">
-        Fake demo documents only. Never upload a real person’s pay stub.
+        Open this site on your phone (same Wi‑Fi) using the Network URL from{" "}
+        <code className="rounded bg-muted px-1">npm run dev</code>, e.g.{" "}
+        <code className="rounded bg-muted px-1">http://192.168.x.x:3000</code>.
+        Fake demo documents only.
       </p>
     </main>
   );
