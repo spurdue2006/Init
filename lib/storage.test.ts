@@ -6,6 +6,7 @@ import {
   EVIDENCE_STORAGE_KEY,
   getEvidence,
   listEvidence,
+  replaceAllEvidence,
   upsertEvidence,
 } from "@/lib/storage";
 
@@ -108,5 +109,14 @@ describe("lib/storage", () => {
       ]),
     );
     expect(listEvidence().map((e) => e.id)).toEqual(["good"]);
+  });
+
+  it("replaceAllEvidence overwrites the list", () => {
+    upsertEvidence(makeEvidence({ id: "old" }));
+    replaceAllEvidence([
+      makeEvidence({ id: "a", source: "One" }),
+      makeEvidence({ id: "b", source: "Two" }),
+    ]);
+    expect(listEvidence().map((e) => e.id).sort()).toEqual(["a", "b"]);
   });
 });
