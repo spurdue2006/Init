@@ -1,12 +1,17 @@
 # Fake extract fixtures (Gemini-ready)
 
-Offline fixtures for future `npm run eval` / Gemini `/api/extract` accuracy checks.
+Offline fixtures for `npm run eval` / Gemini `/api/extract` accuracy checks.
 
 - **Provider:** Google Gemini (`@google/genai`, `GEMINI_API_KEY`) — not Anthropic.
 - **FAKE ONLY.** Never put real pay stubs, SSNs, or account numbers here.
-- Each folder has a text stand-in document + `expected.json` shaped like `Evidence`.
-- Validate expected rows with Zod `EvidenceSchema` from `lib/types.ts`.
+- Each folder under `fixtures/*/` has:
+  - `expected.json` — oracle shaped like `Evidence` (Zod `EvidenceSchema`)
+  - `document.txt` — human-readable stand-in
+  - **image** (`document.png` / `document.jpg`) — required for **live** Gemini scoring
+- Schema validation always runs. Live POST to `/api/extract` runs only when the
+  dev server is up **and** the fixture folder contains an image.
 
-Eval wiring: `npm run eval` (schema-checks `expected.json`; live Gemini scoring
-needs Shlok’s `/api/extract` running and an image file in the fixture folder —
-`document.txt` alone is schema-only).
+```bash
+npm run dev          # terminal 1
+npm run eval         # terminal 2 — schema + live field compare
+```
