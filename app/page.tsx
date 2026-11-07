@@ -34,7 +34,8 @@ function HomeContent() {
           HIP proof on your phone
         </h1>
         <p className="text-muted-foreground">
-          Snap mixed evidence, confirm what AI read, keep it on this device.
+          Snap mixed evidence, confirm what AI read, track the month, download a
+          prep packet.
         </p>
       </header>
 
@@ -44,9 +45,17 @@ function HomeContent() {
         </p>
       ) : null}
 
-      <Button asChild size="lg" className="h-12 w-full text-base">
-        <Link href="/upload">Upload proof</Link>
-      </Button>
+      <div className="flex flex-col gap-2">
+        <Button asChild size="lg" className="h-12 w-full text-base">
+          <Link href="/upload">Upload proof</Link>
+        </Button>
+        <Button asChild size="lg" variant="secondary" className="h-12 w-full text-base">
+          <Link href="/dashboard">Open dashboard</Link>
+        </Button>
+        <Button asChild variant="outline" className="h-11 w-full">
+          <Link href="/exempt">Exemption check</Link>
+        </Button>
+      </div>
 
       <Card>
         <CardHeader>
@@ -93,8 +102,8 @@ function HomeContent() {
       </Card>
 
       <p className="text-center text-xs text-muted-foreground">
-        Not an official FSSA tool. Dashboard totals land when rules engine is
-        ready (S6).
+        Not an official FSSA tool. We never say you are exempt or will keep
+        coverage.
       </p>
     </main>
   );

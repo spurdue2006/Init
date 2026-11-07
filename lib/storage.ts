@@ -61,3 +61,10 @@ export function deleteAllEvidence(): void {
   if (!canUseStorage()) return;
   window.localStorage.removeItem(EVIDENCE_STORAGE_KEY);
 }
+
+/** Replace the entire evidence list (e.g. Load Maria demo). Validates each row. */
+export function replaceAllEvidence(evidence: Evidence[]): Evidence[] {
+  const next = evidence.map((row) => EvidenceSchema.parse(row));
+  writeAll(next);
+  return next;
+}
