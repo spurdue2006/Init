@@ -18,7 +18,11 @@ export const metadata: Metadata = {
     "Proof builder for Indiana HIP work requirements — organize evidence toward 80 hours or $580/month.",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
   return (
     <html
       lang="en"
