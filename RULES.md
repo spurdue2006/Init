@@ -1,6 +1,6 @@
 # HIP Work Requirements — Product Rules
 
-**Source of truth for this app.** Cursor / Claude / teammates must treat this file as
+**Source of truth for this app.** Cursor agents / teammates must treat this file as
 authoritative for Indiana HIP work-requirement behavior. **Do not invent thresholds,
 exemptions, dates, or reporting rules** that are not written here or linked below.
 If something is unclear, link to FSSA — do not guess.

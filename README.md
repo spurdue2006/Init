@@ -2,7 +2,7 @@
 
 **Proof builder for Indiana HIP (and eventually SNAP) work requirements.**
 
-Snap a paystub, gig earnings screen, or volunteer sheet → Claude turns it into structured evidence → see your monthly progress toward **80 hours** or **$580** → download a PDF packet to help you report through the FSSA Benefits Portal.
+Snap a paystub, gig earnings screen, or volunteer sheet → Gemini turns it into structured evidence → see your monthly progress toward **80 hours** or **$580** → download a PDF packet to help you report through the FSSA Benefits Portal.
 
 > This is **not** an official FSSA tool. It helps you organize and prepare evidence. Always confirm status and report through [FSSA](https://www.in.gov/fssa/hip/hip-work-requirements/).
 
@@ -36,7 +36,7 @@ Official references:
 ## What it does (MVP)
 
 1. **Upload** — Phone camera or file picker for a paystub, gig screen, or volunteer sheet.
-2. **Extract** — Claude vision reads the image into structured data (hours, pay, dates, source).
+2. **Extract** — Gemini vision reads the image into structured data (hours, pay, dates, source).
 3. **Confirm** — You review and fix any field before it counts. AI assists; you decide.
 4. **Track** — Monthly dashboard: e.g. `62/80 hrs · November · 23 days left`, plus the earnings path toward `$580`.
 5. **Exempt?** — Short quiz that may suggest you *might* be exempt, with a link to FSSA’s official pre-screener. We never say “you are exempt.”
@@ -66,7 +66,7 @@ Judges can open the live URL on a phone and:
 ```text
 Phone camera
     → Upload
-    → POST /api/extract  (Claude Sonnet vision, JSON schema, Zod validation)
+    → POST /api/extract  (Gemini vision, JSON schema, Zod validation)
     → Confirm / edit     (userConfirmed)
     → localStorage
     → lib/rules.ts       (hours, $580 earnings, school, days left, at-risk)
@@ -96,7 +96,7 @@ See [`RULES.md`](RULES.md) for citations, exemptions list, and reporting timing.
 | Styling | Tailwind + shadcn/ui | Fast, mobile-friendly UI |
 | Hosting | Vercel | Live URL + QR for judges’ phones |
 | Camera | `<input type="file" accept="image/*" capture="environment">` | Opens phone camera, no extra library |
-| AI | Claude API (Sonnet, vision) + structured JSON | Reads stubs, gig screens, handwritten sheets |
+| AI | Google Gemini API (Flash, vision, free tier) + structured JSON | Reads stubs, gig screens, handwritten sheets |
 | Validation | Zod | Reject bad AI output before the tracker |
 | Rules | Plain TypeScript (`lib/rules.ts`) | Pure functions, easy to test |
 | Tests | Vitest | Unit tests + optional AI accuracy eval |
@@ -130,7 +130,7 @@ MonthStatus {
 
 ## How AI was used
 
-- **Document reading:** Claude vision extracts structured fields from uploaded images via `/api/extract`.
+- **Document reading:** Gemini vision extracts structured fields from uploaded images via `/api/extract`.
 - **Human check:** Confirm screen is required so bad extractions don’t silently corrupt the month total.
 - **Guardrails:** Zod schema validation; SSN / account-number redaction; mistakes and overrides logged in [`DECISIONS.md`](DECISIONS.md).
 - **Eval (optional):** `npm run eval` runs fixtures through extract and reports a score (e.g. `14/16 docs correct`).
@@ -151,7 +151,7 @@ docs/sources/        # Official FSSA PDFs used for RULES.md citations
 RULES.md             # HIP pathways, exemptions, links (anti-hallucination)
 DECISIONS.md         # Where AI was wrong / we overrode it
 CONTRIBUTING.md      # Branch/PR workflow — never push straight to main
-.cursor/rules/       # Cursor/Claude project rules (HIP + git)
+.cursor/rules/       # Cursor agent project rules (HIP + git)
 ```
 
 ---
@@ -161,14 +161,14 @@ CONTRIBUTING.md      # Branch/PR workflow — never push straight to main
 ### Prerequisites
 
 - Node.js 20+
-- Anthropic API key
+- Google AI Studio API key ([free](https://aistudio.google.com/apikey))
 - (Optional) Vercel CLI for deploy; Twilio for SMS stretch
 
 ### Local
 
 ```bash
 cp .env.example .env.local
-# set ANTHROPIC_API_KEY=...
+# set GEMINI_API_KEY=...
 
 npm install
 npm run dev
@@ -190,7 +190,7 @@ npm run eval        # optional AI fixture accuracy harness
 
 | Variable | Required | Purpose |
 |----------|----------|---------|
-| `ANTHROPIC_API_KEY` | Yes | Claude vision extraction |
+| `GEMINI_API_KEY` | Yes | Gemini vision extraction (free tier) |
 | Twilio vars | No | Stretch SMS reminders |
 
 ---
