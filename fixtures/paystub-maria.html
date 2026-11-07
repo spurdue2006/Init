@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>FAKE paystub — Maria Demo</title>
+    <style>
+      body {
+        font-family: Arial, Helvetica, sans-serif;
+        background: #e8e8e8;
+        padding: 24px;
+      }
+      .stub {
+        max-width: 640px;
+        margin: 0 auto;
+        background: #fff;
+        border: 1px solid #222;
+        padding: 28px 32px;
+        position: relative;
+      }
+      .watermark {
+        position: absolute;
+        inset: 40% 10%;
+        font-size: 48px;
+        color: rgba(200, 0, 0, 0.12);
+        transform: rotate(-24deg);
+        text-align: center;
+        pointer-events: none;
+        font-weight: 700;
+      }
+      h1 {
+        margin: 0;
+        font-size: 22px;
+      }
+      .banner {
+        color: #b00000;
+        font-weight: 700;
+        margin: 6px 0 18px;
+        font-size: 13px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 12px;
+        font-size: 14px;
+      }
+      th,
+      td {
+        border-bottom: 1px solid #ddd;
+        padding: 8px 4px;
+        text-align: left;
+      }
+      .right {
+        text-align: right;
+      }
+      .meta {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px 24px;
+        font-size: 14px;
+      }
+      .totals {
+        margin-top: 16px;
+        font-size: 15px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="stub">
+      <div class="watermark">SAMPLE / FAKE</div>
+      <h1>ACME HOME HEALTH LLC</h1>
+      <p class="banner">DEMO PAY STATEMENT — NOT A REAL DOCUMENT</p>
+      <div class="meta">
+        <div><strong>Employee:</strong> Maria Demo</div>
+        <div><strong>Employee ID:</strong> EMP-00042</div>
+        <div><strong>Pay period:</strong> 11/01/2026 – 11/15/2026</div>
+        <div><strong>Pay date:</strong> 11/20/2026</div>
+        <div><strong>SSN:</strong> ***-**-0000</div>
+        <div><strong>Location:</strong> Indianapolis, IN (demo)</div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Earnings</th>
+            <th class="right">Hours</th>
+            <th class="right">Rate</th>
+            <th class="right">Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Regular</td>
+            <td class="right">32.00</td>
+            <td class="right">$13.125</td>
+            <td class="right">$420.00</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="totals">
+        <p><strong>Gross pay:</strong> $420.00</p>
+        <p>Federal tax: $45.00 · State tax: $12.60 · FICA: $10.00</p>
+        <p><strong>Net pay:</strong> $352.40</p>
+      </div>
+    </div>
+  </body>
+</html>
