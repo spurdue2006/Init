@@ -8,11 +8,13 @@ Snap a paystub, gig earnings screen, or volunteer sheet → Gemini turns it into
 
 ## Live demo (judges)
 
-**URL:** [https://init-kanavkhurana3737-4212s-projects.vercel.app](https://init-kanavkhurana3737-4212s-projects.vercel.app)
+**Primary URL:** [https://init-kanavkhurana3737-4212s-projects.vercel.app](https://init-kanavkhurana3737-4212s-projects.vercel.app)
 
 Scan the QR (phone) → same URL:
 
 ![QR code for live demo](public/qr-demo.png)
+
+**Also live (same `main` / `spurdue2006/init`):** [https://80-hrs.vercel.app](https://80-hrs.vercel.app) — Twilio SMS env configured for the stretch demo.
 
 **Fake data only** in fixtures and the Maria demo. Never upload a real person’s pay stub.
 
@@ -51,6 +53,8 @@ Official references:
 4. **Track** — Monthly dashboard: e.g. `62/80 hrs · November · 23 days left`, plus the earnings path toward `$580`.
 5. **Exempt?** — Short quiz that may suggest you *might* be exempt, with a link to FSSA’s official pre-screener. We never say “you are exempt.”
 6. **Proof packet** — One-click PDF: month summary, evidence table, totals, which rule was met, plus a clear disclaimer.
+7. **Spanish** — EN / ES toggle in the app shell (`messages/en.json`, `messages/es.json`).
+8. **SMS reminder (stretch)** — Dashboard → send a soft Twilio text via `/api/sms` (trial: verified To number + predefined template).
 
 **Privacy by design:** images are processed in memory and not saved on a server. Evidence lives in **localStorage on your device**. You can delete all local data in one tap. Prompts + checks redact SSNs and account numbers from model output.
 
@@ -58,14 +62,15 @@ Official references:
 
 ## Demo flow (Maria)
 
-Judges can open the [live URL](https://init-kanavkhurana3737-4212s-projects.vercel.app) on a phone and:
+Judges can open a [live URL](https://init-kanavkhurana3737-4212s-projects.vercel.app) on a phone and:
 
 1. Tap **Load Maria demo** on the dashboard (home health + DoorDash + pantry ≈ **62/80 hours** in November 2026), **or** upload a **fake** image from `fixtures/*/document.png` (or `paystub-maria/document.jpg`).
 2. On upload: review the confirm screen — fix any field the model misread, then save.
 3. On the dashboard: watch month totals update; unmet + few days left shows **at-risk**.
 4. Open **Exempt?** → soft suggestion only + link to FSSA’s official pre-screener (we never say “you are exempt”).
 5. Download the **PDF proof packet** (prep evidence, not a filing).
-6. (Stretch, if enabled) Spanish toggle / Twilio SMS reminder.
+6. Toggle **EN / ES** in the header (AppShell) to show Spanish copy.
+7. **SMS reminder (stretch):** Dashboard → enter a Twilio-**verified** E.164 number → **Send reminder text**. On a Twilio trial the body is a predefined template (e.g. `sms_appointment_reminders`), not custom “hours left” copy — still a live phone ping for the pitch: *“Twilio trial only texts verified numbers — here’s a live reminder.”*
 
 **Only fake data in fixtures and demos.**
 
@@ -81,6 +86,7 @@ Phone camera
     → localStorage
     → lib/rules.ts       (hours, $580 earnings, school, days left, at-risk)
     → Dashboard + PDF packet
+         ↘ (stretch) POST /api/sms  → Twilio trial template to verified number
 ```
 
 ### Meeting the month (rules engine)
@@ -113,8 +119,8 @@ See [`RULES.md`](RULES.md) for citations, exemptions list, and reporting timing.
 | CI | GitHub Actions | Lint, typecheck, test, build on every push |
 | Storage | localStorage / IndexedDB | No server database of pay stubs |
 | PDF | `@react-pdf/renderer` | Proof packet in the browser |
-| i18n | `en.json` / `es.json` | Simple Spanish toggle |
-| Stretch SMS | Twilio trial | Demo to a verified number only |
+| i18n | `messages/en.json` + `es.json`, `lib/i18n.tsx`, AppShell toggle | EN / ES without a heavy i18n framework |
+| Stretch SMS | Twilio Messages API via `/api/sms` | Trial: verified To + `TWILIO_TRIAL_TEMPLATE` (no paid upgrade) |
 
 **We do not use Supabase, Firebase, or a server database for MVP.**
 
@@ -152,11 +158,17 @@ MonthStatus {
 ```text
 app/                 # Next.js App Router screens + API
   api/extract/       # Image in → structured Evidence out (no disk write)
+  api/sms/           # Twilio stretch reminder (trial template support)
+components/
+  app-shell.tsx      # Shared chrome + EN/ES LanguageToggle
+  providers.tsx      # LocaleProvider
 lib/
+  i18n.tsx           # Locale context + t()
   rules.ts           # Month totals, earnings path, at-risk
   types.ts           # Shared Evidence / MonthStatus
   pdf/               # ProofPacket (@react-pdf/renderer)
   seed/maria.ts      # Fake Maria demo evidence
+messages/            # en.json + es.json UI copy
 fixtures/            # Fake docs + images + expected JSON (extract eval)
 tests/               # Vitest rules + redaction tests
 scripts/eval.ts      # Optional AI accuracy harness
@@ -184,12 +196,25 @@ CONTRIBUTING.md      # Branch/PR workflow — never push straight to main
 ```bash
 cp .env.example .env.local
 # set GEMINI_API_KEY=...
+# optional SMS: TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_FROM_NUMBER,
+#               TWILIO_TRIAL_TEMPLATE=sms_appointment_reminders
 
 npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+Open [http://localhost:3000](http://localhost:3000). Restart `npm run dev` after changing `.env.local`.
+
+### Twilio SMS stretch (optional, free trial)
+
+1. Create a [Twilio trial](https://www.twilio.com/try-twilio) — **do not upgrade** for the hackathon demo.
+2. Get a trial From number; copy Account SID + Auth Token.
+3. **Verify** the phone that will receive texts (Verified Caller IDs). Trial can only text verified numbers.
+4. Set env vars locally and on Vercel (Production + Preview), then **redeploy**.
+5. New Twilio trials reject custom SMS bodies (error **572006**). Set `TWILIO_TRIAL_TEMPLATE` to a predefined name such as `sms_appointment_reminders`. Custom “X hours left” text needs a paid upgrade — skip that for demo.
+6. Dashboard → SMS reminder → E.164 To number → Send.
+
+Vercel must be connected to GitHub **`spurdue2006/init`** (not a separate empty/`80-hrs`-only repo), or Production will stay on stale “Initial commit” builds without Spanish/SMS UI.
 
 ### Scripts
 
@@ -206,7 +231,14 @@ npm run eval        # optional AI fixture accuracy harness
 | Variable | Required | Purpose |
 |----------|----------|---------|
 | `GEMINI_API_KEY` | Yes | Gemini vision extraction (free tier) |
-| Twilio vars | No | Stretch SMS reminders |
+| `TWILIO_ACCOUNT_SID` | No | Twilio Account SID (`AC…`) |
+| `TWILIO_AUTH_TOKEN` | No | Twilio Auth Token |
+| `TWILIO_FROM_NUMBER` | No | Trial From number (`+1…`) |
+| `TWILIO_TRIAL_TEMPLATE` | No* | Predefined trial Body name (e.g. `sms_appointment_reminders`) |
+
+\*Required for SMS to work on **new** Twilio trials without upgrading. Omit only if the account can send custom Body text.
+
+Secrets are write-only in the Vercel UI after save — that is normal. Wrong SID/token shows as Twilio “invalid username” / auth errors on `/api/sms`.
 
 ---
 
@@ -224,7 +256,7 @@ Workflow: see [`CONTRIBUTING.md`](CONTRIBUTING.md) — **branch → PR → merge
 ## What’s next
 
 - Same 80-hour engine for **SNAP** reporting support
-- SMS reminders (“18 hours to go, 9 days left”)
+- Custom SMS body after Twilio upgrade (“18 hours to go, 9 days left”) — trial currently uses Twilio sample templates only
 - Partner with clinics and benefits navigators for assisted intake
 
 ---
