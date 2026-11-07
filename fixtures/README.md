@@ -7,4 +7,6 @@ Offline fixtures for future `npm run eval` / Gemini `/api/extract` accuracy chec
 - Each folder has a text stand-in document + `expected.json` shaped like `Evidence`.
 - Validate expected rows with Zod `EvidenceSchema` from `lib/types.ts`.
 
-Eval wiring lives in `scripts/eval.ts` (stub until extract API exists).
+Eval wiring: `npm run eval` (schema-checks `expected.json`; live Gemini scoring
+needs Shlok’s `/api/extract` running and an image file in the fixture folder —
+`document.txt` alone is schema-only).
