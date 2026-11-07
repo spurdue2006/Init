@@ -20,7 +20,7 @@
     "label": "Language"
   },
   "home": {
-    "title": "HIP proof on your web",
+    "title": "HIP proof in your browser",
     "subtitle": "Upload mixed evidence, confirm what was read, track the month toward 80 hours or $580, then download a prep packet.",
     "saved": "Evidence saved on this device.",
     "openDashboard": "Open progress",
@@ -109,8 +109,12 @@
     "notConfirmed": "not confirmed",
     "dataPrivacy": "Data & privacy options",
     "deleteHint": "Evidence is stored only in this browser. Deleting cannot be undone.",
+    "deleteOne": "Remove this evidence",
+    "deletedOne": "Evidence removed from this device.",
     "deleteAll": "Delete all my data",
     "deleted": "All local evidence deleted.",
+    "savedToMonth": "Saved to {month}. Soft estimate only — confirm with FSSA.",
+    "savedGeneric": "Evidence saved on this device. Soft estimate only — confirm with FSSA.",
     "disclaimer": "Not an official FSSA tool. PDF packets help you prepare to report — they are not filings.",
     "metVia": "On track · {path}",
     "hrsLeft": "{n} hrs left (est.)",
