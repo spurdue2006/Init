@@ -44,29 +44,29 @@ function HomeContent() {
 
   return (
     <AppShell title={t("nav.home")}>
-      <header className="flex flex-col gap-2 pt-1">
-        <h1 className="text-2xl font-semibold tracking-tight">
+      <header className="flex flex-col gap-2.5 pt-1">
+        <h1 className="text-3xl font-bold tracking-tight text-foreground">
           {t("home.title")}
         </h1>
-        <p className="text-sm leading-relaxed text-muted-foreground">
+        <p className="text-base leading-relaxed text-muted-foreground">
           {t("home.subtitle")}
         </p>
       </header>
 
       {saved ? (
-        <p className="rounded-md border border-border bg-card px-3 py-2 text-sm">
+        <p className="rounded-md border border-border bg-card px-3 py-2 text-sm font-medium">
           {t("home.saved")}
         </p>
       ) : null}
 
       {demoNote ? (
-        <p className="rounded-md border border-border bg-card px-3 py-2 text-sm">
+        <p className="rounded-md border border-border bg-card px-3 py-2 text-sm font-medium">
           {demoNote}
         </p>
       ) : null}
 
-      <div className="flex flex-col gap-2">
-        <Button asChild size="lg" className="h-12 w-full text-base">
+      <div className="flex flex-col gap-2.5">
+        <Button asChild size="lg" className="h-12 w-full text-base font-semibold">
           <Link href="/upload">
             {hasData ? t("home.uploadMore") : t("nav.upload")}
           </Link>
@@ -75,26 +75,34 @@ function HomeContent() {
           asChild
           size="lg"
           variant="secondary"
-          className="h-12 w-full text-base"
+          className="h-12 w-full text-base font-semibold"
         >
           <Link href="/dashboard">{progressLabel}</Link>
         </Button>
-        <Button asChild variant="outline" className="h-11 w-full">
+        <Button
+          asChild
+          variant="outline"
+          className="h-11 w-full font-semibold"
+        >
           <Link href="/exempt">{t("nav.exempt")}</Link>
         </Button>
       </div>
 
       {!hasData ? (
-        <Card size="sm">
+        <Card size="sm" className="shadow-none">
           <CardHeader>
-            <CardTitle className="text-base">{t("home.trySampleTitle")}</CardTitle>
-            <CardDescription>{t("home.trySampleDesc")}</CardDescription>
+            <CardTitle className="text-base font-bold">
+              {t("home.trySampleTitle")}
+            </CardTitle>
+            <CardDescription className="text-sm">
+              {t("home.trySampleDesc")}
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <Button
               type="button"
               variant="outline"
-              className="h-10 w-full"
+              className="h-10 w-full font-semibold"
               onClick={onLoadMaria}
             >
               {t("home.loadMaria")}
