@@ -30,31 +30,47 @@ export function AppShell({
     { href: "/dashboard", label: t("nav.progress") },
   ] as const;
 
+  const showPageTitle = Boolean(title) && title !== t("nav.home");
+
   return (
     <div className="flex min-h-full flex-1 flex-col bg-[var(--page)]">
-      <header className="sticky top-0 z-10 border-b border-border/80 bg-[var(--page)]/95 backdrop-blur-sm">
-        <div className="mx-auto flex w-full max-w-lg items-center justify-between gap-3 px-4 py-3">
+      <header className="sticky top-0 z-10 border-b border-border bg-card/95 backdrop-blur-sm">
+        <div className="mx-auto flex w-full max-w-lg items-center justify-between gap-3 px-4 py-3.5">
           <div className="min-w-0">
             <Link
               href="/"
-              className="text-sm font-semibold tracking-tight text-foreground"
+              className="inline-flex items-center gap-2.5 text-foreground"
             >
-              {t("brand")}
+              <span
+                className="flex size-10 shrink-0 items-center justify-center rounded-md bg-primary text-sm font-bold tracking-tight text-primary-foreground"
+                aria-hidden
+              >
+                80
+              </span>
+              <span className="min-w-0">
+                <span className="block text-lg font-bold tracking-tight">
+                  {t("brand")}
+                </span>
+                {showPageTitle ? (
+                  <span className="block truncate text-xs font-medium text-muted-foreground">
+                    {title}
+                  </span>
+                ) : null}
+              </span>
             </Link>
-            {title ? (
-              <p className="truncate text-xs text-muted-foreground">{title}</p>
-            ) : null}
           </div>
           <div className="flex shrink-0 items-center gap-2">
             {headerRight ? (
-              <div className="text-xs text-muted-foreground">{headerRight}</div>
+              <div className="text-xs font-medium text-muted-foreground">
+                {headerRight}
+              </div>
             ) : null}
             <LanguageToggle />
           </div>
         </div>
         <nav
           aria-label="Main"
-          className="mx-auto flex w-full max-w-lg gap-1 px-4 pb-2"
+          className="mx-auto flex w-full max-w-lg gap-1 px-4 pb-2.5"
         >
           {nav.map((item) => {
             const active =
@@ -66,9 +82,9 @@ export function AppShell({
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex-1 rounded-md px-3 py-2 text-center text-sm transition-colors",
+                  "flex-1 rounded-md px-3 py-2.5 text-center text-sm font-semibold transition-colors",
                   active
-                    ? "bg-foreground text-background"
+                    ? "bg-primary text-primary-foreground"
                     : "text-muted-foreground hover:bg-muted hover:text-foreground",
                 )}
               >
