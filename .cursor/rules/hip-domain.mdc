@@ -1,0 +1,14 @@
+---
+description: Indiana HIP work-requirement domain — anti-hallucination
+alwaysApply: true
+---
+
+# HIP domain (read before coding)
+
+- Before changing thresholds, exemptions UI, proof-packet copy, or `lib/rules.ts`, read **`RULES.md`** and cite FSSA sources listed there.
+- **Hard numbers only from RULES.md:** 80 hours/month, $580/month ($7.25×80), half-time school/apprenticeship, ages 19–64, start 2027-01-01, 3-month lookback (Jan 2027 → Oct/Nov/Dec 2026).
+- **Never invent** exemptions, qualifying activities, reporting deadlines, or penalties. If missing from `RULES.md`, link to FSSA or ask — do not guess.
+- **Never** tell a user they “are exempt,” “meet requirements,” or “will keep coverage.” Soft language + official pre-screener / FSSA links only.
+- This app is **not** an official FSSA tool. PDF packets are prep evidence, not filings.
+- Log material product overrides in **`DECISIONS.md`**.
+- Prefer Vitest coverage for any numeric change in `computeMonthStatus`.

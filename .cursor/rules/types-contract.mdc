@@ -1,0 +1,12 @@
+---
+description: Frozen Evidence/MonthStatus contract
+globs: lib/types.ts,lib/rules.ts,lib/seed/**,lib/pdf/**,app/api/**/**
+alwaysApply: false
+---
+
+# Shared types contract
+
+- `Evidence`, `MonthStatus`, and `EvidenceSchema` in `lib/types.ts` are the team contract.
+- Do not rename fields or change Zod enums casually — coordinate + update `DECISIONS.md`.
+- Import stubs: `computeMonthStatus` from `@/lib/rules`, `mariaEvidence` from `@/lib/seed/maria`, `ProofPacket` from `@/lib/pdf`.
+- Keep AI extract output validated with `EvidenceSchema` before it affects month totals.
