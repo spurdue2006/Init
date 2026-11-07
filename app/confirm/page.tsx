@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { clearDraftEvidence, loadDraftEvidence } from "@/lib/draft";
+import { LanguageToggle, useI18n } from "@/lib/i18n";
 import { upsertEvidence } from "@/lib/storage";
 import {
   EvidenceTypeSchema,
@@ -23,10 +24,10 @@ import {
 } from "@/lib/types";
 
 const TYPES = EvidenceTypeSchema.options;
-
 const emptySubscribe = () => () => {};
 
 export default function ConfirmPage() {
+  const { t } = useI18n();
   const router = useRouter();
   const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
   const [draft, setDraft] = useState<Evidence | null>(null);
@@ -54,7 +55,6 @@ export default function ConfirmPage() {
       };
       upsertEvidence(confirmed);
       clearDraftEvidence();
-      // Land on dashboard so month totals update for this pay period.
       router.push("/dashboard");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not save evidence");
@@ -64,7 +64,7 @@ export default function ConfirmPage() {
   if (!mounted) {
     return (
       <main className="mx-auto flex max-w-lg flex-1 items-center justify-center px-4 py-16 text-sm text-muted-foreground">
-        Loading draft…
+        {t("confirm.loadingDraft")}
       </main>
     );
   }
@@ -72,9 +72,10 @@ export default function ConfirmPage() {
   if (!effective) {
     return (
       <main className="mx-auto flex max-w-lg flex-1 flex-col items-center gap-4 px-4 py-16 text-center">
-        <p className="text-muted-foreground">No draft found. Upload a document first.</p>
+        <LanguageToggle />
+        <p className="text-muted-foreground">{t("confirm.noDraft")}</p>
         <Button asChild>
-          <Link href="/upload">Go to upload</Link>
+          <Link href="/upload">{t("confirm.goUpload")}</Link>
         </Button>
       </main>
     );
@@ -83,46 +84,52 @@ export default function ConfirmPage() {
   return (
     <main className="mx-auto flex w-full max-w-lg flex-1 flex-col gap-4 px-4 py-8">
       <div className="flex items-center justify-between gap-2">
-        <Link href="/upload" className="text-sm text-muted-foreground underline-offset-4 hover:underline">
-          ← Upload again
+        <Link
+          href="/upload"
+          className="text-sm text-muted-foreground underline-offset-4 hover:underline"
+        >
+          {t("confirm.uploadAgain")}
         </Link>
-        <p className="text-xs tracking-wide text-muted-foreground uppercase">
-          Step 2 of 2
-        </p>
+        <div className="flex items-center gap-3">
+          <p className="text-xs tracking-wide text-muted-foreground uppercase">
+            {t("confirm.step")}
+          </p>
+          <LanguageToggle />
+        </div>
       </div>
 
       <Card>
         <CardHeader>
           <div className="flex items-start justify-between gap-2">
             <div>
-              <CardTitle>Confirm what AI read</CardTitle>
-              <CardDescription>
-                Fix any field before it counts. AI assists — you decide.
-              </CardDescription>
+              <CardTitle>{t("confirm.title")}</CardTitle>
+              <CardDescription>{t("confirm.description")}</CardDescription>
             </div>
             <Badge variant="secondary">
-              {Math.round(effective.confidence * 100)}% conf.
+              {t("confirm.confidence", {
+                pct: Math.round(effective.confidence * 100),
+              })}
             </Badge>
           </div>
         </CardHeader>
         <CardContent className="flex flex-col gap-3">
           <label className="flex flex-col gap-1 text-sm">
-            <span className="text-muted-foreground">Type</span>
+            <span className="text-muted-foreground">{t("confirm.type")}</span>
             <select
               className="h-9 rounded-lg border border-input bg-transparent px-2.5 text-sm"
               value={effective.type}
               onChange={(e) => update("type", e.target.value as EvidenceType)}
             >
-              {TYPES.map((t) => (
-                <option key={t} value={t}>
-                  {t}
+              {TYPES.map((type) => (
+                <option key={type} value={type}>
+                  {type}
                 </option>
               ))}
             </select>
           </label>
 
           <label className="flex flex-col gap-1 text-sm">
-            <span className="text-muted-foreground">Source</span>
+            <span className="text-muted-foreground">{t("confirm.source")}</span>
             <Input
               value={effective.source}
               onChange={(e) => update("source", e.target.value)}
@@ -131,7 +138,9 @@ export default function ConfirmPage() {
 
           <div className="grid grid-cols-2 gap-3">
             <label className="flex flex-col gap-1 text-sm">
-              <span className="text-muted-foreground">Period start</span>
+              <span className="text-muted-foreground">
+                {t("confirm.periodStart")}
+              </span>
               <Input
                 type="date"
                 value={effective.periodStart}
@@ -139,7 +148,9 @@ export default function ConfirmPage() {
               />
             </label>
             <label className="flex flex-col gap-1 text-sm">
-              <span className="text-muted-foreground">Period end</span>
+              <span className="text-muted-foreground">
+                {t("confirm.periodEnd")}
+              </span>
               <Input
                 type="date"
                 value={effective.periodEnd}
@@ -150,7 +161,7 @@ export default function ConfirmPage() {
 
           <div className="grid grid-cols-2 gap-3">
             <label className="flex flex-col gap-1 text-sm">
-              <span className="text-muted-foreground">Hours</span>
+              <span className="text-muted-foreground">{t("confirm.hours")}</span>
               <Input
                 type="number"
                 min={0}
@@ -165,7 +176,9 @@ export default function ConfirmPage() {
               />
             </label>
             <label className="flex flex-col gap-1 text-sm">
-              <span className="text-muted-foreground">Gross pay ($)</span>
+              <span className="text-muted-foreground">
+                {t("confirm.grossPay")}
+              </span>
               <Input
                 type="number"
                 min={0}
@@ -182,7 +195,7 @@ export default function ConfirmPage() {
           </div>
 
           <label className="flex flex-col gap-1 text-sm">
-            <span className="text-muted-foreground">Notes</span>
+            <span className="text-muted-foreground">{t("confirm.notes")}</span>
             <Input
               value={effective.notes ?? ""}
               onChange={(e) => update("notes", e.target.value || undefined)}
@@ -201,10 +214,10 @@ export default function ConfirmPage() {
             className="h-11 w-full text-base"
             onClick={onConfirm}
           >
-            Confirm & save on this device
+            {t("confirm.save")}
           </Button>
           <p className="text-center text-xs text-muted-foreground">
-            Saved to localStorage only. You can delete all data later from Home.
+            {t("confirm.saveHint")}
           </p>
         </CardFooter>
       </Card>
