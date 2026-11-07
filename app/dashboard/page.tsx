@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { Trash2 } from "lucide-react";
-import { Suspense, useEffect, useState, useSyncExternalStore } from "react";
+import { Suspense, useState, useSyncExternalStore } from "react";
 import { AppShell } from "@/components/app-shell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -88,7 +88,6 @@ function primaryMonthForRow(row: Evidence): string {
 
 function DashboardContent() {
   const { t, locale } = useI18n();
-  const router = useRouter();
   const searchParams = useSearchParams();
   const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
   const [tick, setTick] = useState(0);
@@ -107,24 +106,24 @@ function DashboardContent() {
     evidenceMonths.length > 0
       ? evidenceMonths[evidenceMonths.length - 1]
       : "2026-11";
-  const month = monthOverride ?? suggestedMonth;
 
-  useEffect(() => {
-    if (!mounted) return;
-    if (searchParams.get("saved") !== "1") return;
-    const savedMonth = searchParams.get("month");
-    if (savedMonth && /^\d{4}-\d{2}$/.test(savedMonth)) {
-      setMonthOverride(savedMonth);
-      setMessage(
-        t("dashboard.savedToMonth", {
+  // Derive save banner + month from the confirm redirect (?saved=1&month=YYYY-MM)
+  // instead of setState-in-effect (eslint react-hooks/set-state-in-effect).
+  const savedFromConfirm = searchParams.get("saved") === "1";
+  const savedMonthParam = searchParams.get("month");
+  const savedMonth =
+    savedMonthParam && /^\d{4}-\d{2}$/.test(savedMonthParam)
+      ? savedMonthParam
+      : null;
+  const month = monthOverride ?? savedMonth ?? suggestedMonth;
+  const savedBanner = savedFromConfirm
+    ? savedMonth
+      ? t("dashboard.savedToMonth", {
           month: monthLabel(savedMonth, locale),
-        }),
-      );
-    } else {
-      setMessage(t("dashboard.savedGeneric"));
-    }
-    router.replace("/dashboard", { scroll: false });
-  }, [mounted, searchParams, locale, router, t]);
+        })
+      : t("dashboard.savedGeneric")
+    : null;
+  const statusMessage = message ?? savedBanner;
 
   const status = mounted
     ? computeMonthStatus(items, month, new Date())
@@ -232,12 +231,12 @@ function DashboardContent() {
         <p className="text-sm text-muted-foreground">{t("dashboard.subtitle")}</p>
       </header>
 
-      {message ? (
+      {statusMessage ? (
         <p
           className="rounded-md border border-primary/20 bg-accent/60 px-3 py-2 text-sm font-medium text-foreground"
           role="status"
         >
-          {message}
+          {statusMessage}
         </p>
       ) : null}
       {error ? (
