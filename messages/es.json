@@ -102,7 +102,7 @@
     "pathSchool": "Escuela / aprendizaje (medio tiempo)",
     "pathNone": "Aún no se cumple este mes",
     "smsTitle": "Recordatorio SMS (demo)",
-    "smsDesc": "La prueba de Twilio solo puede enviar a números verificados. Solo un recordatorio suave — no es un aviso oficial.",
+    "smsDesc": "Prueba de Twilio: solo números verificados y una plantilla de ejemplo de Twilio (no el texto de horas). Recordatorio suave — no es un aviso oficial.",
     "smsPhone": "Teléfono (E.164, p. ej. +15551234567)",
     "smsSend": "Enviar recordatorio",
     "smsSending": "Enviando…",

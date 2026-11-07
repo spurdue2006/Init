@@ -102,7 +102,7 @@
     "pathSchool": "School / apprenticeship (half-time)",
     "pathNone": "Not yet met for this month",
     "smsTitle": "SMS reminder (demo)",
-    "smsDesc": "Twilio trial can only text verified numbers. Soft reminder only — not an official notice.",
+    "smsDesc": "Twilio trial: verified numbers only, and a sample Twilio template (not custom hours text). Soft reminder — not an official notice.",
     "smsPhone": "Phone (E.164, e.g. +15551234567)",
     "smsSend": "Send reminder text",
     "smsSending": "Sending…",

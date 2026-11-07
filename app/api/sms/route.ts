@@ -59,7 +59,12 @@ export async function POST(request: Request) {
   const hoursRemaining = parsed.data.hoursRemaining ?? 0;
   const daysLeft = parsed.data.daysLeft ?? 0;
   const month = parsed.data.month ?? "this month";
-  const body = buildMessage({ hoursRemaining, daysLeft, month, locale });
+  // New Twilio trials reject custom Body text (error 572006). Set
+  // TWILIO_TRIAL_TEMPLATE to a predefined name, e.g. sms_appointment_reminders.
+  const trialTemplate = process.env.TWILIO_TRIAL_TEMPLATE?.trim();
+  const body =
+    trialTemplate ||
+    buildMessage({ hoursRemaining, daysLeft, month, locale });
 
   try {
     const client = twilio(accountSid, authToken);
@@ -72,12 +77,13 @@ export async function POST(request: Request) {
       ok: true,
       sid: message.sid,
       preview: body,
+      trialTemplate: Boolean(trialTemplate),
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Twilio send failed";
     return NextResponse.json(
       {
-        error: `SMS failed: ${message}. On a Twilio trial, the destination must be a verified number.`,
+        error: `SMS failed: ${message}. Trial: verified To number + TWILIO_TRIAL_TEMPLATE (e.g. sms_appointment_reminders), or upgrade for custom text.`,
       },
       { status: 502 },
     );
