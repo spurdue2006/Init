@@ -147,8 +147,11 @@ lib/
   types.ts           # Shared Evidence / MonthStatus
 fixtures/            # Fake documents + expected JSON
 messages/            # en.json, es.json
-RULES.md             # HIP pathways, exemptions, links
+docs/sources/        # Official FSSA PDFs used for RULES.md citations
+RULES.md             # HIP pathways, exemptions, links (anti-hallucination)
 DECISIONS.md         # Where AI was wrong / we overrode it
+CONTRIBUTING.md      # Branch/PR workflow — never push straight to main
+.cursor/rules/       # Cursor/Claude project rules (HIP + git)
 ```
 
 ---
@@ -198,6 +201,8 @@ npm run eval        # optional AI fixture accuracy harness
 |--------|--------|
 | **Shlok** | Next.js UI, `/api/extract`, confirm/dashboard/exempt, device storage, Spanish / Twilio stretch |
 | **Kanav** | `RULES.md`, `lib/rules.ts` + Vitest, fixtures/eval, CI, PDF packet, Maria seed, README / DECISIONS |
+
+Workflow: see [`CONTRIBUTING.md`](CONTRIBUTING.md) — **branch → PR → merge**; never push straight to `main`. Domain rules for humans and Cursor: [`RULES.md`](RULES.md).
 
 ---
 

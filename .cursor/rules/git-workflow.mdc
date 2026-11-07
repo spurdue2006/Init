@@ -1,0 +1,14 @@
+---
+description: Branch/PR workflow and ownership to avoid main conflicts
+alwaysApply: true
+---
+
+# Git & ownership
+
+- **Never commit or push directly to `main`.** Create `feat/…`, `fix/…`, or `chore/…`, then open a PR into `main`.
+- Follow **`CONTRIBUTING.md`**.
+- **Kanav owns:** `RULES.md`, `DECISIONS.md`, `lib/rules.ts`, rules tests, fixtures/eval, CI, `lib/pdf/**`, `lib/seed/**`.
+- **Shlok owns:** `app/**` UI, `/api/extract`, confirm/dashboard/exempt, storage, i18n, Twilio stretch.
+- **`lib/types.ts` is frozen** — change only with both people agreeing; note it in `DECISIONS.md`.
+- Do not rewrite the other owner’s files unless asked; keep shared-file diffs minimal.
+- Do not force-push `main` or skip hooks unless the human explicitly requests it.
