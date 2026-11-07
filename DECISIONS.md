@@ -15,6 +15,34 @@ Format:
 
 ---
 
+## AI extract mistakes / overrides
+
+Log Gemini `/api/extract` misses here so we do not silently “fix” bad totals.
+Fixtures under `fixtures/*/expected.json` are the oracle for offline checks;
+`npm run eval` prints mismatches to paste below.
+
+Format:
+
+```md
+### YYYY-MM-DD — fixture-name / field
+- **Got:** …
+- **Expected:** …
+- **Override / fix:** user confirmed edit | prompt change | ignore for MVP
+- **Owners:** Kanav / Shlok
+```
+
+### 2026-11-07 — Eval harness ready (no live misses yet)
+
+- **Context:** Phase 2 K8/K9. Extract route lives on Shlok’s branch; main fixtures
+  are text stand-ins (`document.txt`), while `/api/extract` requires multipart
+  `image`.
+- **Decision:** `npm run eval` always schema-validates `expected.json`. Live
+  Gemini scoring runs only when the extract URL is up **and** the fixture folder
+  has an image. Until then, no field-level AI mistakes to log — start appending
+  rows above when live eval reports mismatches.
+- **Source / why:** Parallel Phase 2; fake fixtures only (never real pay stubs).
+- **Owners:** Kanav
+
 ## 2026-11-07 — Rules engine algorithm (Phase 1)
 
 - **Context:** Implement `computeMonthStatus` for parallel UI work without
