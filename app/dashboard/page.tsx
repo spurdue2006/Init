@@ -61,17 +61,49 @@ function metByLabel(metBy: MetBy): string {
   }
 }
 
+/** Calendar months (YYYY-MM) overlapped by confirmed evidence periods. */
+function monthsFromEvidence(
+  evidence: ReturnType<typeof listEvidence>,
+): string[] {
+  const months = new Set<string>();
+  for (const row of evidence) {
+    if (!row.userConfirmed) continue;
+    const start = row.periodStart.slice(0, 7);
+    const end = row.periodEnd.slice(0, 7);
+    if (!/^\d{4}-\d{2}$/.test(start) || !/^\d{4}-\d{2}$/.test(end)) continue;
+
+    let [y, m] = start.split("-").map(Number);
+    const [endY, endM] = end.split("-").map(Number);
+    while (y < endY || (y === endY && m <= endM)) {
+      months.add(`${y}-${String(m).padStart(2, "0")}`);
+      m += 1;
+      if (m > 12) {
+        m = 1;
+        y += 1;
+      }
+    }
+  }
+  return [...months].sort();
+}
+
 function DashboardContent() {
   const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
   const [tick, setTick] = useState(0);
-  // Default to Maria demo month so SSR never reads the system clock.
-  const [month, setMonth] = useState("2026-11");
+  // null = follow evidence month automatically (fixes “wrong month → 0 hrs”).
+  const [monthOverride, setMonthOverride] = useState<string | null>(null);
   const [pdfBusy, setPdfBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   void tick;
   const items = mounted ? listEvidence() : [];
+  const evidenceMonths = monthsFromEvidence(items);
+  const suggestedMonth =
+    evidenceMonths.length > 0
+      ? evidenceMonths[evidenceMonths.length - 1]
+      : "2026-11";
+  const month = monthOverride ?? suggestedMonth;
+
   const status = mounted
     ? computeMonthStatus(items, month, new Date())
     : { ...PLACEHOLDER_STATUS, month };
@@ -85,6 +117,10 @@ function DashboardContent() {
     Math.round((status.earnings / EARNINGS_THRESHOLD) * 100),
   );
 
+  const selectedEmpty =
+    status.hours === 0 && status.earnings === 0 && status.metBy === "none";
+  const otherMonthsWithData = evidenceMonths.filter((m) => m !== month);
+
   function refresh(note?: string) {
     setTick((t) => t + 1);
     setError(null);
@@ -93,7 +129,7 @@ function DashboardContent() {
 
   function onLoadMaria() {
     replaceAllEvidence(mariaEvidence);
-    setMonth("2026-11");
+    setMonthOverride("2026-11");
     refresh("Loaded Maria demo (~62/80 hrs for November 2026). Fake data only.");
   }
 
@@ -148,13 +184,38 @@ function DashboardContent() {
       </header>
 
       <label className="flex flex-col gap-1 text-sm">
-        <span className="text-muted-foreground">Month</span>
+        <span className="text-muted-foreground">
+          Month (totals only count evidence in this month)
+        </span>
         <Input
           type="month"
           value={month}
-          onChange={(e) => setMonth(e.target.value)}
+          onChange={(e) => setMonthOverride(e.target.value)}
         />
       </label>
+
+      {selectedEmpty && otherMonthsWithData.length > 0 ? (
+        <div className="rounded-lg border border-border bg-muted/50 px-3 py-2 text-sm">
+          <p className="mb-2">
+            Your saved proof is for{" "}
+            {otherMonthsWithData.map(monthLabel).join(", ")}, not{" "}
+            {monthLabel(month)} — so this month shows 0. Switch to see totals:
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {otherMonthsWithData.map((m) => (
+              <Button
+                key={m}
+                type="button"
+                size="sm"
+                variant="secondary"
+                onClick={() => setMonthOverride(m)}
+              >
+                {monthLabel(m)}
+              </Button>
+            ))}
+          </div>
+        </div>
+      ) : null}
 
       {status.atRisk ? (
         <div

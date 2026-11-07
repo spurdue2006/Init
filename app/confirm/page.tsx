@@ -54,7 +54,8 @@ export default function ConfirmPage() {
       };
       upsertEvidence(confirmed);
       clearDraftEvidence();
-      router.push("/?saved=1");
+      // Land on dashboard so month totals update for this pay period.
+      router.push("/dashboard");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not save evidence");
     }
