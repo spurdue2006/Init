@@ -54,7 +54,11 @@ export default function ConfirmPage() {
       };
       upsertEvidence(confirmed);
       clearDraftEvidence();
-      router.push("/dashboard");
+      const monthKey = confirmed.periodStart.slice(0, 7);
+      const monthQuery = /^\d{4}-\d{2}$/.test(monthKey)
+        ? `&month=${encodeURIComponent(monthKey)}`
+        : "";
+      router.push(`/dashboard?saved=1${monthQuery}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not save evidence");
     }

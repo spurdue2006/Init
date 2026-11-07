@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { Trash2 } from "lucide-react";
 import { Suspense, useState, useSyncExternalStore } from "react";
 import { AppShell } from "@/components/app-shell";
 import { Badge } from "@/components/ui/badge";
@@ -21,7 +23,11 @@ import {
   HOURS_THRESHOLD,
   computeMonthStatus,
 } from "@/lib/rules";
-import { deleteAllEvidence, listEvidence } from "@/lib/storage";
+import {
+  deleteAllEvidence,
+  deleteEvidence,
+  listEvidence,
+} from "@/lib/storage";
 import type { Evidence, MetBy, MonthStatus } from "@/lib/types";
 
 const emptySubscribe = () => () => {};
@@ -82,6 +88,7 @@ function primaryMonthForRow(row: Evidence): string {
 
 function DashboardContent() {
   const { t, locale } = useI18n();
+  const searchParams = useSearchParams();
   const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
   const [tick, setTick] = useState(0);
   const [monthOverride, setMonthOverride] = useState<string | null>(null);
@@ -99,7 +106,24 @@ function DashboardContent() {
     evidenceMonths.length > 0
       ? evidenceMonths[evidenceMonths.length - 1]
       : "2026-11";
-  const month = monthOverride ?? suggestedMonth;
+
+  // Derive save banner + month from the confirm redirect (?saved=1&month=YYYY-MM)
+  // instead of setState-in-effect (eslint react-hooks/set-state-in-effect).
+  const savedFromConfirm = searchParams.get("saved") === "1";
+  const savedMonthParam = searchParams.get("month");
+  const savedMonth =
+    savedMonthParam && /^\d{4}-\d{2}$/.test(savedMonthParam)
+      ? savedMonthParam
+      : null;
+  const month = monthOverride ?? savedMonth ?? suggestedMonth;
+  const savedBanner = savedFromConfirm
+    ? savedMonth
+      ? t("dashboard.savedToMonth", {
+          month: monthLabel(savedMonth, locale),
+        })
+      : t("dashboard.savedGeneric")
+    : null;
+  const statusMessage = message ?? savedBanner;
 
   const status = mounted
     ? computeMonthStatus(items, month, new Date())
@@ -206,6 +230,20 @@ function DashboardContent() {
         </h1>
         <p className="text-sm text-muted-foreground">{t("dashboard.subtitle")}</p>
       </header>
+
+      {statusMessage ? (
+        <p
+          className="rounded-md border border-primary/20 bg-accent/60 px-3 py-2 text-sm font-medium text-foreground"
+          role="status"
+        >
+          {statusMessage}
+        </p>
+      ) : null}
+      {error ? (
+        <p className="text-sm text-destructive" role="alert">
+          {error}
+        </p>
+      ) : null}
 
       <label className="flex flex-col gap-1.5 text-sm">
         <span className="text-muted-foreground">{t("dashboard.month")}</span>
@@ -390,17 +428,6 @@ function DashboardContent() {
         </CardContent>
       </Card>
 
-      {message ? (
-        <p className="rounded-md border border-border bg-card px-3 py-2 text-sm">
-          {message}
-        </p>
-      ) : null}
-      {error ? (
-        <p className="text-sm text-destructive" role="alert">
-          {error}
-        </p>
-      ) : null}
-
       <section className="flex flex-col gap-3">
         <div>
           <h2 className="text-sm font-semibold tracking-tight">
@@ -421,11 +448,11 @@ function DashboardContent() {
               const rowMonth = primaryMonthForRow(item);
               const inView = rowMonth === month;
               return (
-                <li key={item.id}>
+                <li key={item.id} className="flex items-stretch gap-2">
                   <button
                     type="button"
                     onClick={() => setMonthOverride(rowMonth)}
-                    className={`w-full rounded-md border bg-card px-3 py-3 text-left text-sm transition-colors ${
+                    className={`min-w-0 flex-1 rounded-md border bg-card px-3 py-3 text-left text-sm transition-colors ${
                       inView
                         ? "border-foreground/25"
                         : "border-border hover:border-foreground/15"
@@ -453,6 +480,20 @@ function DashboardContent() {
                         : ""}
                     </p>
                   </button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    className="h-auto min-h-11 w-11 shrink-0 self-stretch border-border"
+                    aria-label={t("dashboard.deleteOne")}
+                    title={t("dashboard.deleteOne")}
+                    onClick={() => {
+                      deleteEvidence(item.id);
+                      refresh(t("dashboard.deletedOne"));
+                    }}
+                  >
+                    <Trash2 className="size-4" aria-hidden />
+                  </Button>
                 </li>
               );
             })}

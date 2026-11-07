@@ -104,13 +104,14 @@ Format:
 ## 2026-11-07 — Phase 3 judge URL + QR (K10)
 
 - **Context:** Hackathon judges need a phone-openable production link and QR.
-- **Decision:** Document production demo at
-  `https://init-kanavkhurana3737-4212s-projects.vercel.app` with
-  [`public/qr-demo.png`](public/qr-demo.png). Keep Deployment Protection off (or
-  shareable) so judges are not blocked by Vercel login. `GEMINI_API_KEY` must be
-  set on Vercel **Production**.
-- **Source / why:** Phase 3 K10; README live demo section.
-- **Owners:** Kanav
+- **Decision (updated):** Primary production demo is
+  `https://80-hrs.vercel.app` with [`public/qr-demo.png`](public/qr-demo.png)
+  (Twilio SMS env configured; GitHub `spurdue2006/init` → Vercel project `80-hrs`).
+  Keep Deployment Protection off (or shareable) so judges are not blocked by
+  Vercel login. `GEMINI_API_KEY` + Twilio vars must be set on Vercel **Production**.
+  Earlier Kanav-team Vercel URL is retired from README / judge materials.
+- **Source / why:** Phase 3 K10; README live demo section; Twilio stretch on 80-hrs.
+- **Owners:** Kanav (original); Shlok (URL switch for Twilio-ready deploy)
 
 ## 2026-11-07 — Authoritative HIP numbers from FSSA
 

@@ -20,7 +20,7 @@
     "label": "Idioma"
   },
   "home": {
-    "title": "Comprobantes HIP en la web",
+    "title": "Comprobantes HIP en tu navegador",
     "subtitle": "Suba pruebas mixtas, confirme lo leído, siga el mes hacia 80 horas o $580 y descargue un paquete de preparación.",
     "saved": "Comprobante guardado en este dispositivo.",
     "openDashboard": "Abrir progreso",
@@ -109,8 +109,12 @@
     "notConfirmed": "sin confirmar",
     "dataPrivacy": "Opciones de datos y privacidad",
     "deleteHint": "Los comprobantes solo están en este navegador. Borrar no se puede deshacer.",
+    "deleteOne": "Quitar este comprobante",
+    "deletedOne": "Comprobante eliminado de este dispositivo.",
     "deleteAll": "Borrar todos mis datos",
     "deleted": "Se borraron todos los comprobantes locales.",
+    "savedToMonth": "Guardado en {month}. Solo estimación suave — confirme con FSSA.",
+    "savedGeneric": "Comprobante guardado en este dispositivo. Solo estimación suave — confirme con FSSA.",
     "disclaimer": "No es una herramienta oficial de FSSA. Los PDF ayudan a prepararse para reportar — no son presentaciones oficiales.",
     "metVia": "En camino · {path}",
     "hrsLeft": "{n} hrs restantes (est.)",
