@@ -1,0 +1,11 @@
+*** FAKE DOCUMENT — NOT A REAL PERSON ***
+
+ACME HOME HEALTH
+Employee Pay Statement
+
+Employee: Alex Demo
+Pay period: 2026-11-01 to 2026-11-15
+Hours worked: 40.00
+Gross pay: $520.00
+
+Do not upload real pay stubs to free-tier APIs.

@@ -1,0 +1,12 @@
+{
+  "id": "fixture-paystub-acme",
+  "type": "paystub",
+  "source": "ACME Home Health",
+  "periodStart": "2026-11-01",
+  "periodEnd": "2026-11-15",
+  "hours": 40,
+  "grossPay": 520,
+  "confidence": 0.9,
+  "userConfirmed": false,
+  "notes": "FAKE fixture — biweekly aide paystub"
+}

@@ -1,0 +1,12 @@
+{
+  "id": "fixture-gig-doordash",
+  "type": "gig",
+  "source": "DoorDash",
+  "periodStart": "2026-11-01",
+  "periodEnd": "2026-11-30",
+  "hours": 14,
+  "grossPay": 210,
+  "confidence": 0.85,
+  "userConfirmed": false,
+  "notes": "FAKE fixture — November gig earnings"
+}
