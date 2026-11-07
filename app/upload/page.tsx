@@ -13,6 +13,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { saveDraftEvidence } from "@/lib/draft";
+import { useI18n } from "@/lib/i18n";
 import type { Evidence } from "@/lib/types";
 
 const emptySubscribe = () => () => {};
@@ -26,6 +27,7 @@ function useSecureContext(): boolean {
 }
 
 export default function UploadPage() {
+  const { t } = useI18n();
   const router = useRouter();
   const secure = useSecureContext();
   const cameraRef = useRef<HTMLInputElement>(null);
@@ -44,7 +46,7 @@ export default function UploadPage() {
 
   async function onExtract() {
     if (!file) {
-      setError("Take or choose a photo first.");
+      setError(t("upload.needPhoto"));
       return;
     }
 
@@ -82,7 +84,7 @@ export default function UploadPage() {
       router.push("/confirm");
     } catch (err) {
       if (err instanceof DOMException && err.name === "AbortError") {
-        setError("Extract timed out. Try again — free-tier Gemini can be slow.");
+        setError(t("upload.timeout"));
       } else {
         setError(err instanceof Error ? err.message : "Extract failed");
       }
@@ -92,29 +94,27 @@ export default function UploadPage() {
   }
 
   return (
-    <AppShell title="Proof" headerRight="Step 1 of 2">
+    <AppShell title={t("nav.proof")} headerRight={t("upload.step")}>
       <header className="flex flex-col gap-1">
-        <h1 className="text-2xl font-semibold tracking-tight">Upload proof</h1>
-        <p className="text-sm text-muted-foreground">
-          Photos are read in memory and not saved on a server. Phones need HTTPS
-          (or localhost) for the live camera.
-        </p>
+        <h1 className="text-2xl font-semibold tracking-tight">
+          {t("upload.title")}
+        </h1>
+        <p className="text-sm text-muted-foreground">{t("upload.description")}</p>
       </header>
 
       <Card size="sm" className="shadow-none">
         <CardHeader>
-          <CardTitle className="text-base">Document</CardTitle>
+          <CardTitle className="text-base">{t("upload.title")}</CardTitle>
           <CardDescription>
-            Take a photo or choose one from your library.
+            {t("upload.takePhoto")} / {t("upload.choosePhoto")}
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
           {!secure ? (
             <div className="rounded-md border border-amber-700/25 bg-amber-50/80 px-3 py-3 text-sm text-amber-950">
-              <p className="font-medium">Camera blocked on this URL</p>
+              <p className="font-medium">{t("upload.httpsBlockedTitle")}</p>
               <p className="mt-1 text-amber-900/80">
-                You’re on plain HTTP. Use <strong>Choose photo</strong>, or open
-                an HTTPS / Vercel URL for <strong>Take photo</strong>.
+                {t("upload.httpsBlockedBody")}
               </p>
             </div>
           ) : null}
@@ -148,9 +148,7 @@ export default function UploadPage() {
               className="h-12 w-full text-base"
               onClick={() => {
                 if (!secure) {
-                  setError(
-                    "Live camera needs HTTPS. Use Choose photo, or open the ngrok/Vercel HTTPS link on your phone.",
-                  );
+                  setError(t("upload.httpsNeed"));
                   libraryRef.current?.click();
                   return;
                 }
@@ -158,7 +156,7 @@ export default function UploadPage() {
               }}
               disabled={loading}
             >
-              Take photo
+              {t("upload.takePhoto")}
             </Button>
             <Button
               type="button"
@@ -168,7 +166,7 @@ export default function UploadPage() {
               onClick={() => libraryRef.current?.click()}
               disabled={loading}
             >
-              Choose photo
+              {t("upload.choosePhoto")}
             </Button>
           </div>
 
@@ -181,10 +179,8 @@ export default function UploadPage() {
             />
           ) : (
             <div className="flex h-44 flex-col items-center justify-center gap-1 rounded-md border border-dashed border-border bg-[var(--page)] px-4 text-center text-sm text-muted-foreground">
-              <span>Preview appears here</span>
-              <span className="text-xs">
-                Allow camera access when the phone asks
-              </span>
+              <span>{t("upload.preview")}</span>
+              <span className="text-xs">{t("upload.allowCamera")}</span>
             </div>
           )}
 
@@ -201,14 +197,12 @@ export default function UploadPage() {
             onClick={onExtract}
             disabled={!file || loading}
           >
-            {loading ? "Reading document…" : "Extract with Gemini"}
+            {loading ? t("upload.extracting") : t("upload.extract")}
           </Button>
         </CardFooter>
       </Card>
 
-      <p className="text-xs text-muted-foreground">
-        Fake demo documents only. For live camera use HTTPS (ngrok / Vercel).
-      </p>
+      <p className="text-xs text-muted-foreground">{t("upload.footer")}</p>
     </AppShell>
   );
 }

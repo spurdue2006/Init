@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
+import { useI18n } from "@/lib/i18n";
 import { ProofPacket } from "@/lib/pdf";
 import {
   EARNINGS_THRESHOLD,
@@ -36,40 +37,20 @@ const PLACEHOLDER_STATUS: MonthStatus = {
   atRisk: false,
 };
 
-function monthLabel(month: string): string {
+function monthLabel(month: string, locale: string): string {
   const [y, m] = month.split("-").map(Number);
-  return new Date(y, m - 1, 1).toLocaleString("en-US", {
-    month: "long",
-    year: "numeric",
-  });
+  return new Date(y, m - 1, 1).toLocaleString(
+    locale === "es" ? "es-US" : "en-US",
+    { month: "long", year: "numeric" },
+  );
 }
 
-function shortMonthLabel(month: string): string {
+function shortMonthLabel(month: string, locale: string): string {
   const [y, m] = month.split("-").map(Number);
-  return new Date(y, m - 1, 1).toLocaleString("en-US", {
-    month: "short",
-    year: "numeric",
-  });
-}
-
-function metByLabel(metBy: MetBy): string {
-  switch (metBy) {
-    case "hours":
-      return "Estimate: on track via hours path (80+)";
-    case "earnings":
-      return "Estimate: on track via earnings path ($580+)";
-    case "school":
-      return "Estimate: school / apprenticeship (half-time)";
-    default:
-      return "Estimate: pathway not yet met for this month";
-  }
-}
-
-function statusBadgeLabel(status: MonthStatus): string {
-  if (status.metBy !== "none") {
-    return `On track · ${status.metBy}`;
-  }
-  return `${status.hoursRemaining} hrs left (est.)`;
+  return new Date(y, m - 1, 1).toLocaleString(
+    locale === "es" ? "es-US" : "en-US",
+    { month: "short", year: "numeric" },
+  );
 }
 
 /** Calendar months (YYYY-MM) overlapped by confirmed evidence periods. */
@@ -100,11 +81,13 @@ function primaryMonthForRow(row: Evidence): string {
 }
 
 function DashboardContent() {
+  const { t, locale } = useI18n();
   const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
   const [tick, setTick] = useState(0);
-  // null = follow evidence month automatically (fixes “wrong month → 0 hrs”).
   const [monthOverride, setMonthOverride] = useState<string | null>(null);
   const [pdfBusy, setPdfBusy] = useState(false);
+  const [smsBusy, setSmsBusy] = useState(false);
+  const [phone, setPhone] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showDanger, setShowDanger] = useState(false);
@@ -140,8 +123,21 @@ function DashboardContent() {
     return start <= month && end >= month;
   });
 
+  function metByLabel(metBy: MetBy): string {
+    switch (metBy) {
+      case "hours":
+        return t("dashboard.pathHours");
+      case "earnings":
+        return t("dashboard.pathEarnings");
+      case "school":
+        return t("dashboard.pathSchool");
+      default:
+        return t("dashboard.pathNone");
+    }
+  }
+
   function refresh(note?: string) {
-    setTick((t) => t + 1);
+    setTick((n) => n + 1);
     setError(null);
     setMessage(note ?? null);
   }
@@ -161,29 +157,58 @@ function DashboardContent() {
       a.download = `80-hours-proof-${month}.pdf`;
       a.click();
       URL.revokeObjectURL(url);
-      setMessage(
-        "Proof packet downloaded. Prep aid only — not an official filing.",
-      );
+      setMessage(t("dashboard.pdfDone"));
     } catch (err) {
-      setError(err instanceof Error ? err.message : "PDF download failed");
+      setError(err instanceof Error ? err.message : t("dashboard.pdfFailed"));
     } finally {
       setPdfBusy(false);
     }
   }
 
+  async function onSendSms() {
+    const to = phone.trim();
+    if (!/^\+[1-9]\d{7,14}$/.test(to)) {
+      setError(t("dashboard.smsNeedPhone"));
+      return;
+    }
+    setSmsBusy(true);
+    setError(null);
+    setMessage(null);
+    try {
+      const res = await fetch("/api/sms", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          to,
+          hoursRemaining: status.hoursRemaining,
+          daysLeft: status.daysLeft,
+          month: monthLabel(month, locale),
+          locale,
+        }),
+      });
+      const data = (await res.json()) as { error?: string };
+      if (!res.ok) {
+        throw new Error(data.error || t("dashboard.smsFail"));
+      }
+      setMessage(t("dashboard.smsOk"));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t("dashboard.smsFail"));
+    } finally {
+      setSmsBusy(false);
+    }
+  }
+
   return (
-    <AppShell title="Progress">
+    <AppShell title={t("nav.progress")}>
       <header className="flex flex-col gap-1">
         <h1 className="text-2xl font-semibold tracking-tight">
-          Monthly progress
+          {t("dashboard.title")}
         </h1>
-        <p className="text-sm text-muted-foreground">
-          Soft estimate toward HIP’s 80 hours or $580 — confirm with FSSA.
-        </p>
+        <p className="text-sm text-muted-foreground">{t("dashboard.subtitle")}</p>
       </header>
 
       <label className="flex flex-col gap-1.5 text-sm">
-        <span className="text-muted-foreground">Month</span>
+        <span className="text-muted-foreground">{t("dashboard.month")}</span>
         <Input
           type="month"
           value={month}
@@ -205,7 +230,7 @@ function DashboardContent() {
                       : "bg-card text-muted-foreground ring-1 ring-border hover:text-foreground"
                   }`}
                 >
-                  {shortMonthLabel(m)}
+                  {shortMonthLabel(m, locale)}
                 </button>
               );
             })}
@@ -216,8 +241,12 @@ function DashboardContent() {
       {selectedEmpty && otherMonthsWithData.length > 0 ? (
         <div className="rounded-md border border-amber-700/25 bg-amber-50/80 px-3 py-3 text-sm text-amber-950 dark:bg-amber-950/25 dark:text-amber-50">
           <p>
-            No totals for {monthLabel(month)}. Evidence is in{" "}
-            {otherMonthsWithData.map(shortMonthLabel).join(", ")}.
+            {t("dashboard.wrongMonthBody", {
+              months: otherMonthsWithData
+                .map((m) => shortMonthLabel(m, locale))
+                .join(", "),
+              selected: monthLabel(month, locale),
+            })}
           </p>
           <div className="mt-2 flex flex-wrap gap-1.5">
             {otherMonthsWithData.map((m) => (
@@ -229,7 +258,9 @@ function DashboardContent() {
                 className="h-8"
                 onClick={() => setMonthOverride(m)}
               >
-                Show {shortMonthLabel(m)}
+                {t("dashboard.showMonth", {
+                  month: shortMonthLabel(m, locale),
+                })}
               </Button>
             ))}
           </div>
@@ -241,9 +272,10 @@ function DashboardContent() {
           className="rounded-md border border-destructive/30 bg-destructive/5 px-3 py-3 text-sm text-destructive"
           role="alert"
         >
-          At risk for {monthLabel(month)}: pathway not met yet and only{" "}
-          {status.daysLeft} day{status.daysLeft === 1 ? "" : "s"} left. Not an
-          official determination.
+          {t("dashboard.atRisk", {
+            month: monthLabel(month, locale),
+            days: status.daysLeft,
+          })}
         </div>
       ) : null}
 
@@ -252,7 +284,7 @@ function DashboardContent() {
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-                {monthLabel(month)}
+                {monthLabel(month, locale)}
               </p>
               <CardTitle className="mt-1 text-3xl font-semibold tracking-tight tabular-nums">
                 {status.hours}
@@ -261,7 +293,7 @@ function DashboardContent() {
                 </span>
               </CardTitle>
               <CardDescription className="mt-1.5">
-                {status.daysLeft} day{status.daysLeft === 1 ? "" : "s"} left ·{" "}
+                {t("dashboard.daysLeft", { n: status.daysLeft })} ·{" "}
                 {metByLabel(status.metBy)}
               </CardDescription>
             </div>
@@ -269,14 +301,18 @@ function DashboardContent() {
               variant={status.metBy !== "none" ? "default" : "secondary"}
               className="shrink-0"
             >
-              {statusBadgeLabel(status)}
+              {status.metBy !== "none"
+                ? t("dashboard.metVia", { path: status.metBy })
+                : t("dashboard.hrsLeft", { n: status.hoursRemaining })}
             </Badge>
           </div>
         </CardHeader>
         <CardContent className="flex flex-col gap-5 pt-4">
           <div className="flex flex-col gap-2">
             <div className="flex items-end justify-between gap-2">
-              <span className="text-sm font-medium">Hours</span>
+              <span className="text-sm font-medium">
+                {t("dashboard.hoursLabel")}
+              </span>
               <span className="text-sm tabular-nums text-muted-foreground">
                 {status.hours} / {HOURS_THRESHOLD}
               </span>
@@ -285,7 +321,9 @@ function DashboardContent() {
           </div>
           <div className="flex flex-col gap-2">
             <div className="flex items-end justify-between gap-2">
-              <span className="text-sm font-medium">Earnings</span>
+              <span className="text-sm font-medium">
+                {t("dashboard.earningsLabel")}
+              </span>
               <span className="text-sm tabular-nums text-muted-foreground">
                 ${status.earnings.toFixed(2)} / ${EARNINGS_THRESHOLD}
               </span>
@@ -293,16 +331,14 @@ function DashboardContent() {
             <Progress value={earningsPct} className="h-1.5" />
             {status.earnings >= EARNINGS_THRESHOLD ? (
               <p className="text-xs text-muted-foreground">
-                Gross pay for this month clears the $580 earnings pathway
-                (estimate).
+                {t("dashboard.earningsCleared")}
               </p>
             ) : null}
           </div>
           <p className="text-xs text-muted-foreground">
-            {itemsInMonth.length} evidence item
-            {itemsInMonth.length === 1 ? "" : "s"} in this month
+            {t("dashboard.evidenceInMonth", { count: itemsInMonth.length })}
             {items.length !== itemsInMonth.length
-              ? ` · ${items.length} total on device`
+              ? ` · ${t("dashboard.totalOnDevice", { total: items.length })}`
               : ""}
           </p>
         </CardContent>
@@ -310,7 +346,7 @@ function DashboardContent() {
 
       <div className="flex flex-col gap-2">
         <Button asChild className="h-11 w-full">
-          <Link href="/upload">Upload more proof</Link>
+          <Link href="/upload">{t("dashboard.uploadMore")}</Link>
         </Button>
         <Button
           type="button"
@@ -319,9 +355,40 @@ function DashboardContent() {
           onClick={onDownloadPdf}
           disabled={pdfBusy || items.length === 0}
         >
-          {pdfBusy ? "Building PDF…" : "Download PDF packet"}
+          {pdfBusy ? t("dashboard.buildingPdf") : t("dashboard.downloadPdf")}
         </Button>
       </div>
+
+      <Card size="sm" className="shadow-none">
+        <CardHeader>
+          <CardTitle className="text-base">{t("dashboard.smsTitle")}</CardTitle>
+          <CardDescription>{t("dashboard.smsDesc")}</CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-3">
+          <label className="flex flex-col gap-1.5 text-sm">
+            <span className="text-muted-foreground">
+              {t("dashboard.smsPhone")}
+            </span>
+            <Input
+              className="h-11 bg-card"
+              type="tel"
+              inputMode="tel"
+              placeholder="+15551234567"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+            />
+          </label>
+          <Button
+            type="button"
+            variant="secondary"
+            className="h-11 w-full"
+            disabled={smsBusy}
+            onClick={onSendSms}
+          >
+            {smsBusy ? t("dashboard.smsSending") : t("dashboard.smsSend")}
+          </Button>
+        </CardContent>
+      </Card>
 
       {message ? (
         <p className="rounded-md border border-border bg-card px-3 py-2 text-sm">
@@ -337,16 +404,16 @@ function DashboardContent() {
       <section className="flex flex-col gap-3">
         <div>
           <h2 className="text-sm font-semibold tracking-tight">
-            Evidence on this device
+            {t("dashboard.evidenceTitle")}
           </h2>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            Only confirmed rows count toward totals.
+            {t("dashboard.evidenceDesc")}
           </p>
         </div>
 
         {items.length === 0 ? (
           <p className="rounded-md border border-dashed border-border bg-card/60 px-3 py-6 text-center text-sm text-muted-foreground">
-            No evidence yet. Upload a document or load sample data from Home.
+            {t("dashboard.noEvidence")}
           </p>
         ) : (
           <ul className="flex flex-col gap-2">
@@ -366,14 +433,16 @@ function DashboardContent() {
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
-                        <p className="font-medium truncate">{item.source}</p>
-                        <p className="mt-0.5 text-xs text-muted-foreground capitalize">
+                        <p className="truncate font-medium">{item.source}</p>
+                        <p className="mt-0.5 text-xs capitalize text-muted-foreground">
                           {item.type}
-                          {item.userConfirmed ? "" : " · not confirmed"}
+                          {item.userConfirmed
+                            ? ""
+                            : ` · ${t("dashboard.notConfirmed")}`}
                         </p>
                       </div>
                       <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
-                        {shortMonthLabel(rowMonth)}
+                        {shortMonthLabel(rowMonth, locale)}
                       </span>
                     </div>
                     <p className="mt-2 text-xs tabular-nums text-muted-foreground">
@@ -398,13 +467,12 @@ function DashboardContent() {
                 className="text-xs text-muted-foreground underline-offset-4 hover:underline"
                 onClick={() => setShowDanger(true)}
               >
-                Data & privacy options
+                {t("dashboard.dataPrivacy")}
               </button>
             ) : (
               <div className="rounded-md border border-border bg-card px-3 py-3">
                 <p className="text-xs text-muted-foreground">
-                  Evidence is stored only in this browser. Deleting cannot be
-                  undone.
+                  {t("dashboard.deleteHint")}
                 </p>
                 <Button
                   type="button"
@@ -414,10 +482,10 @@ function DashboardContent() {
                     deleteAllEvidence();
                     setMonthOverride(null);
                     setShowDanger(false);
-                    refresh("All local evidence deleted.");
+                    refresh(t("dashboard.deleted"));
                   }}
                 >
-                  Delete all my data
+                  {t("dashboard.deleteAll")}
                 </Button>
               </div>
             )}
@@ -433,7 +501,7 @@ export default function DashboardPage() {
     <Suspense
       fallback={
         <main className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
-          Loading dashboard…
+          Loading…
         </main>
       }
     >

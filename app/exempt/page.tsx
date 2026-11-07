@@ -11,35 +11,18 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { useI18n } from "@/lib/i18n";
 
 /**
  * Soft suggest-only quiz from RULES.md exemptions.
  * Never asserts “you are exempt.”
  */
 const QUESTIONS = [
-  {
-    id: "caregiver_child",
-    prompt: "Are you a parent or caregiver of a child age 13 or younger?",
-  },
-  {
-    id: "caregiver_disability",
-    prompt: "Do you care for a person with a disability?",
-  },
-  {
-    id: "pregnant",
-    prompt:
-      "Are you pregnant, or has it been 12 months or less since a pregnancy ended?",
-  },
-  {
-    id: "medical",
-    prompt:
-      "Do you have a serious health condition, disability, or are you in substance-use treatment? (FSSA decides “medically frail.”)",
-  },
-  {
-    id: "other",
-    prompt:
-      "Might another FSSA category apply (foster care under 26, Tribe member, veteran with 100% disability, recent incarceration, or SNAP/TANF work rules)?",
-  },
+  { id: "caregiver_child", key: "exempt.q_caregiver_child" },
+  { id: "caregiver_disability", key: "exempt.q_caregiver_disability" },
+  { id: "pregnant", key: "exempt.q_pregnant" },
+  { id: "medical", key: "exempt.q_medical" },
+  { id: "other", key: "exempt.q_other" },
 ] as const;
 
 type Answer = "yes" | "no" | null;
@@ -50,6 +33,7 @@ const FSSA_HUB = "https://www.in.gov/fssa/hip/hip-work-requirements/";
 const BENEFITS_PORTAL = "https://FSSABenefits.IN.gov";
 
 export default function ExemptPage() {
+  const { t } = useI18n();
   const [answers, setAnswers] = useState<Record<string, Answer>>(
     Object.fromEntries(QUESTIONS.map((q) => [q.id, null])),
   );
@@ -68,31 +52,24 @@ export default function ExemptPage() {
   }
 
   return (
-    <AppShell title="Exemption check">
+    <AppShell title={t("exempt.title")}>
       <header className="flex flex-col gap-1">
         <h1 className="text-2xl font-semibold tracking-tight">
-          Exemption check
+          {t("exempt.title")}
         </h1>
-        <p className="text-sm text-muted-foreground">
-          Based on FSSA’s published list. This app only suggests you{" "}
-          <strong>might</strong> want to check — it never decides exemption or
-          eligibility.
-        </p>
+        <p className="text-sm text-muted-foreground">{t("exempt.description")}</p>
       </header>
 
       <Card size="sm" className="shadow-none">
         <CardHeader>
-          <CardTitle className="text-base">Short quiz</CardTitle>
-          <CardDescription>
-            Answer each question, then see a soft suggestion with official
-            links.
-          </CardDescription>
+          <CardTitle className="text-base">{t("exempt.quizTitle")}</CardTitle>
+          <CardDescription>{t("exempt.quizDesc")}</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-5">
           {QUESTIONS.map((q, index) => (
             <fieldset key={q.id} className="flex flex-col gap-2">
               <legend className="text-sm font-medium">
-                {index + 1}. {q.prompt}
+                {index + 1}. {t(q.key)}
               </legend>
               <div className="flex gap-2">
                 <Button
@@ -102,7 +79,7 @@ export default function ExemptPage() {
                   variant={answers[q.id] === "yes" ? "default" : "outline"}
                   onClick={() => setAnswer(q.id, "yes")}
                 >
-                  Yes
+                  {t("exempt.yes")}
                 </Button>
                 <Button
                   type="button"
@@ -111,7 +88,7 @@ export default function ExemptPage() {
                   variant={answers[q.id] === "no" ? "default" : "outline"}
                   onClick={() => setAnswer(q.id, "no")}
                 >
-                  No
+                  {t("exempt.no")}
                 </Button>
               </div>
             </fieldset>
@@ -124,24 +101,12 @@ export default function ExemptPage() {
             disabled={!allAnswered}
             onClick={() => setSubmitted(true)}
           >
-            See suggestion
+            {t("exempt.seeSuggestion")}
           </Button>
 
           {submitted ? (
             <div className="rounded-md border border-border bg-[var(--page)] px-3 py-3 text-sm">
-              {anyYes ? (
-                <p>
-                  Based on your answers, you <strong>may be exempt</strong> for
-                  some months — but only FSSA can confirm. Use their official
-                  tools below. This app does not determine exemption.
-                </p>
-              ) : (
-                <p>
-                  Nothing in this short quiz suggested an exemption. You may
-                  still qualify under another FSSA category we didn’t cover.
-                  Check the official pre-screener / member pages.
-                </p>
-              )}
+              <p>{anyYes ? t("exempt.maybeExempt") : t("exempt.maybeNot")}</p>
               <ul className="mt-3 flex flex-col gap-2">
                 <li>
                   <a
@@ -150,7 +115,7 @@ export default function ExemptPage() {
                     target="_blank"
                     rel="noreferrer"
                   >
-                    FSSA information for HIP members
+                    {t("exempt.linkMembers")}
                   </a>
                 </li>
                 <li>
@@ -160,7 +125,7 @@ export default function ExemptPage() {
                     target="_blank"
                     rel="noreferrer"
                   >
-                    HIP work requirements hub
+                    {t("exempt.linkHub")}
                   </a>
                 </li>
                 <li>
@@ -170,7 +135,7 @@ export default function ExemptPage() {
                     target="_blank"
                     rel="noreferrer"
                   >
-                    FSSA Benefits Portal
+                    {t("exempt.linkPortal")}
                   </a>
                 </li>
               </ul>

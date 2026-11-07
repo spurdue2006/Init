@@ -12,12 +12,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { useI18n } from "@/lib/i18n";
 import { mariaEvidence } from "@/lib/seed/maria";
 import { listEvidence, replaceAllEvidence } from "@/lib/storage";
 
 const emptySubscribe = () => () => {};
 
 function HomeContent() {
+  const { t } = useI18n();
   const searchParams = useSearchParams();
   const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
   const [tick, setTick] = useState(0);
@@ -30,25 +32,30 @@ function HomeContent() {
 
   function onLoadMaria() {
     replaceAllEvidence(mariaEvidence);
-    setTick((t) => t + 1);
-    setDemoNote("Loaded Maria sample data (~62/80 hrs for Nov 2026). Fake data only.");
+    setTick((n) => n + 1);
+    setDemoNote(t("home.mariaLoaded"));
   }
 
+  const progressLabel = hasData
+    ? items.length === 1
+      ? t("home.openProgressWithCount", { count: items.length })
+      : t("home.openProgressWithCount_plural", { count: items.length })
+    : t("home.openDashboard");
+
   return (
-    <AppShell title="Home">
+    <AppShell title={t("nav.home")}>
       <header className="flex flex-col gap-2 pt-1">
         <h1 className="text-2xl font-semibold tracking-tight">
-          HIP proof on your phone
+          {t("home.title")}
         </h1>
-        <p className="text-sm text-muted-foreground leading-relaxed">
-          Upload mixed evidence, confirm what was read, track the month toward
-          80 hours or $580, then download a prep packet.
+        <p className="text-sm leading-relaxed text-muted-foreground">
+          {t("home.subtitle")}
         </p>
       </header>
 
       {saved ? (
         <p className="rounded-md border border-border bg-card px-3 py-2 text-sm">
-          Evidence saved on this device.
+          {t("home.saved")}
         </p>
       ) : null}
 
@@ -61,7 +68,7 @@ function HomeContent() {
       <div className="flex flex-col gap-2">
         <Button asChild size="lg" className="h-12 w-full text-base">
           <Link href="/upload">
-            {hasData ? "Upload more proof" : "Upload proof"}
+            {hasData ? t("home.uploadMore") : t("nav.upload")}
           </Link>
         </Button>
         <Button
@@ -70,25 +77,18 @@ function HomeContent() {
           variant="secondary"
           className="h-12 w-full text-base"
         >
-          <Link href="/dashboard">
-            {hasData
-              ? `Open progress (${items.length} item${items.length === 1 ? "" : "s"})`
-              : "Open progress"}
-          </Link>
+          <Link href="/dashboard">{progressLabel}</Link>
         </Button>
         <Button asChild variant="outline" className="h-11 w-full">
-          <Link href="/exempt">Exemption check</Link>
+          <Link href="/exempt">{t("nav.exempt")}</Link>
         </Button>
       </div>
 
       {!hasData ? (
         <Card size="sm">
           <CardHeader>
-            <CardTitle className="text-base">Try with sample data</CardTitle>
-            <CardDescription>
-              Optional for demos. Loads fake Maria evidence — never use real
-              pay stubs here.
-            </CardDescription>
+            <CardTitle className="text-base">{t("home.trySampleTitle")}</CardTitle>
+            <CardDescription>{t("home.trySampleDesc")}</CardDescription>
           </CardHeader>
           <CardContent>
             <Button
@@ -97,7 +97,7 @@ function HomeContent() {
               className="h-10 w-full"
               onClick={onLoadMaria}
             >
-              Load Maria sample
+              {t("home.loadMaria")}
             </Button>
           </CardContent>
         </Card>

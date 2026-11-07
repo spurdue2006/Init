@@ -3,13 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
+import { LanguageToggle, useI18n } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
-
-const NAV = [
-  { href: "/", label: "Home" },
-  { href: "/upload", label: "Proof" },
-  { href: "/dashboard", label: "Progress" },
-] as const;
 
 type AppShellProps = {
   children: ReactNode;
@@ -27,6 +22,13 @@ export function AppShell({
   className,
 }: AppShellProps) {
   const pathname = usePathname();
+  const { t } = useI18n();
+
+  const nav = [
+    { href: "/", label: t("nav.home") },
+    { href: "/upload", label: t("nav.proof") },
+    { href: "/dashboard", label: t("nav.progress") },
+  ] as const;
 
   return (
     <div className="flex min-h-full flex-1 flex-col bg-[var(--page)]">
@@ -37,23 +39,24 @@ export function AppShell({
               href="/"
               className="text-sm font-semibold tracking-tight text-foreground"
             >
-              80 Hours
+              {t("brand")}
             </Link>
             {title ? (
               <p className="truncate text-xs text-muted-foreground">{title}</p>
             ) : null}
           </div>
-          {headerRight ? (
-            <div className="shrink-0 text-xs text-muted-foreground">
-              {headerRight}
-            </div>
-          ) : null}
+          <div className="flex shrink-0 items-center gap-2">
+            {headerRight ? (
+              <div className="text-xs text-muted-foreground">{headerRight}</div>
+            ) : null}
+            <LanguageToggle />
+          </div>
         </div>
         <nav
           aria-label="Main"
           className="mx-auto flex w-full max-w-lg gap-1 px-4 pb-2"
         >
-          {NAV.map((item) => {
+          {nav.map((item) => {
             const active =
               item.href === "/"
                 ? pathname === "/"
@@ -87,8 +90,7 @@ export function AppShell({
 
       <footer className="mx-auto w-full max-w-lg px-4 pb-8 pt-2">
         <p className="text-center text-xs leading-relaxed text-muted-foreground">
-          Not an official FSSA tool. Estimates only — confirm status and report
-          through FSSA. PDF packets help you prepare; they are not filings.
+          {t("shell.disclaimer")}
         </p>
       </footer>
     </div>
