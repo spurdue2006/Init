@@ -5,8 +5,13 @@ import { z } from "zod";
 import { containsSensitiveDigits, redactEvidence } from "@/lib/redact";
 import { EvidenceSchema, EvidenceTypeSchema, type Evidence } from "@/lib/types";
 
-/** Free-tier Flash model — do not switch to paid-only models. */
-const DEFAULT_MODEL = "gemini-3.8-flash";
+/**
+ * Free-tier Flash-Lite — do not switch to paid-only models.
+ * Note: gemini-3.8-flash currently hangs for new free-tier keys on generateContent;
+ * gemini-3.5-flash-lite is reliable and fast for vision JSON extract.
+ */
+const DEFAULT_MODEL = "gemini-3.5-flash-lite";
+const GEMINI_TIMEOUT_MS = 25_000;
 
 const ExtractedFieldsSchema = z.object({
   type: EvidenceTypeSchema,
@@ -104,22 +109,33 @@ export async function POST(request: Request) {
 
   let rawText: string;
   try {
-    const response = await ai.models.generateContent({
-      model,
-      contents: [
-        {
-          inlineData: {
-            mimeType,
-            data: base64,
+    const response = await Promise.race([
+      ai.models.generateContent({
+        model,
+        contents: [
+          {
+            inlineData: {
+              mimeType,
+              data: base64,
+            },
           },
+          { text: EXTRACT_PROMPT },
+        ],
+        config: {
+          responseMimeType: "application/json",
+          temperature: 0.1,
         },
-        { text: EXTRACT_PROMPT },
-      ],
-      config: {
-        responseMimeType: "application/json",
-        temperature: 0.1,
-      },
-    });
+      }),
+      new Promise<never>((_, reject) => {
+        setTimeout(() => {
+          reject(
+            new Error(
+              `Gemini timed out after ${GEMINI_TIMEOUT_MS / 1000}s (model=${model}). Try again or set GEMINI_MODEL=gemini-3.5-flash-lite.`,
+            ),
+          );
+        }, GEMINI_TIMEOUT_MS);
+      }),
+    ]);
     rawText = response.text ?? "";
   } catch (err) {
     const message = err instanceof Error ? err.message : "Gemini request failed";

@@ -43,10 +43,20 @@ export default function UploadPage() {
       const body = new FormData();
       body.append("image", file);
 
-      const res = await fetch("/api/extract", {
-        method: "POST",
-        body,
-      });
+      const controller = new AbortController();
+      const timeoutId = window.setTimeout(() => controller.abort(), 30_000);
+
+      let res: Response;
+      try {
+        res = await fetch("/api/extract", {
+          method: "POST",
+          body,
+          signal: controller.signal,
+        });
+      } finally {
+        window.clearTimeout(timeoutId);
+      }
+
       const data = (await res.json()) as {
         evidence?: Evidence;
         error?: string;
@@ -59,7 +69,11 @@ export default function UploadPage() {
       saveDraftEvidence(data.evidence);
       router.push("/confirm");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Extract failed");
+      if (err instanceof DOMException && err.name === "AbortError") {
+        setError("Extract timed out. Try again — free-tier Gemini can be slow.");
+      } else {
+        setError(err instanceof Error ? err.message : "Extract failed");
+      }
     } finally {
       setLoading(false);
     }
