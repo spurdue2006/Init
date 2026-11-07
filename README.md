@@ -8,13 +8,13 @@ Snap a paystub, gig earnings screen, or volunteer sheet → Gemini turns it into
 
 ## Live demo (judges)
 
-**Primary URL:** [https://init-kanavkhurana3737-4212s-projects.vercel.app](https://init-kanavkhurana3737-4212s-projects.vercel.app)
+**Primary URL:** [https://80-hrs.vercel.app](https://80-hrs.vercel.app) — Twilio SMS env configured for the stretch demo.
 
 Scan the QR (phone) → same URL:
 
 ![QR code for live demo](public/qr-demo.png)
 
-**Also live (same `main` / `spurdue2006/init`):** [https://80-hrs.vercel.app](https://80-hrs.vercel.app) — Twilio SMS env configured for the stretch demo.
+**Also live (same `main` / `spurdue2006/init`):** [https://init-kanavkhurana3737-4212s-projects.vercel.app](https://init-kanavkhurana3737-4212s-projects.vercel.app)
 
 **Fake data only** in fixtures and the Maria demo. Never upload a real person’s pay stub.
 
@@ -62,7 +62,7 @@ Official references:
 
 ## Demo flow (Maria)
 
-Judges can open a [live URL](https://init-kanavkhurana3737-4212s-projects.vercel.app) on a phone and:
+Judges can open the [live URL](https://80-hrs.vercel.app) on a phone and:
 
 1. Tap **Load Maria demo** on the dashboard (home health + DoorDash + pantry ≈ **62/80 hours** in November 2026), **or** upload a **fake** image from `fixtures/*/document.png` (or `paystub-maria/document.jpg`).
 2. On upload: review the confirm screen — fix any field the model misread, then save.
